@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Mental Personal</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    
+    .center {
+      background: #3498db;
+      color: white;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 18px;
+      text-align: center;
+      transition: transform 0.5s, background 0.5s;
+    }
+    .center:hover {
+      transform: scale(1.1);
+      background: #2980b9;
+    }
+
+    .area {
+      position: absolute;
+      background: #2ecc71;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: none;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.5s;
+    }
+    .area.show {
+      display: block;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #areasContainer {
+      position: relative;
+      width: 600px;
+      height: 600px;
+    }
+
+    .listContainer {
+      margin-top: 20px;
+      width: 300px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.5s;
+    }
+
+    .listContainer ul {
+      padding: 0;
+      width: 100%;
+    }
+
+    .listContainer li {
+      list-style: none;
+      background: #fff;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .listContainer button {
+      margin-top: 10px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .listContainer button:hover {
+      background: #2980b9;
+    }
+
+    #backBtn {
+      background: #e67e22;
+      margin-top: 15px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="areasContainer">
+  <div class="center" id="centerButton">YO</div>
+</div>
+
+<div class="listContainer" id="listContainer">
+  <h3 id="areaTitle"></h3>
+  <ul id="itemList"></ul>
+  <button id="addItemBtn">Agregar elemento</button>
+  <button id="backBtn">Volver</button>
+</div>
+
+<script>
+  const centerButton = document.getElementById('centerButton');
+  const areasContainer = document.getElementById('areasContainer');
+  const listContainer = document.getElementById('listContainer');
+  const areaTitle = document.getElementById('areaTitle');
+  const itemList = document.getElementById('itemList');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const backBtn = document.getElementById('backBtn');
+
+  const areas = [
+    'Familia',
+    'Trabajo',
+    'Amistades',
+    'Salud',
+    'Espiritualidad',
+    'Estudio',
+    'Finanzas',
+    'Casa'
+  ];
+
+  // Cargar datos guardados o iniciar vacío
+  let areaData = JSON.parse(localStorage.getItem('areaData')) || {
+    Familia: [],
+    Trabajo: [],
+    Amistades: [],
+    Salud: [],
+    Espiritualidad: [],
+    Estudio: [],
+    Finanzas: [],
+    Casa: []
+  };
+
+  centerButton.addEventListener('click', () => {
+    clearAreas();
+    const radius = 200;
+    areas.forEach((area, index) => {
+      let angle = (index / areas.length) * (2 * Math.PI);
+      const x = radius * Math.cos(angle) + 240;
+      const y = radius * Math.sin(angle) + 240;
+
+      let areaButton = document.createElement('div');
+      areaButton.className = 'area';
+      areaButton.style.left = x + 'px';
+      areaButton.style.top = y + 'px';
+      areaButton.innerText = area;
+      areaButton.onclick = () => openArea(area);
+
+      areasContainer.appendChild(areaButton);
+
+      setTimeout(() => {
+        areaButton.classList.add('show');
+      }, 100);
+    });
+  });
+
+  function clearAreas() {
+    const oldAreas = document.querySelectorAll('.area');
+    oldAreas.forEach(btn => btn.remove());
+  }
+
+  function openArea(areaName) {
+    areasContainer.style.display = 'none';
+    listContainer.style.display = 'flex';
+    areaTitle.innerText = areaName;
+    renderList(areaName);
+  }
+
+  function renderList(areaName) {
+    itemList.innerHTML = '';
+    areaData[areaName].forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'X';
+      delBtn.style.background = 'red';
+      delBtn.onclick = () => {
+        areaData[areaName].splice(idx, 1);
+        saveData();
+        renderList(areaName);
+      };
+      li.appendChild(delBtn);
+      itemList.appendChild(li);
+    });
+  }
+
+  addItemBtn.addEventListener('click', () => {
+    const item = prompt('Agregar nuevo elemento:');
+    if (item) {
+      const currentArea = areaTitle.innerText;
+      areaData[currentArea].push(item);
+      saveData();
+      renderList(currentArea);
+    }
+  });
+
+  backBtn.addEventListener('click', () => {
+    listContainer.style.display = 'none';
+    areasContainer.style.display = 'flex';
+  });
+
+  function saveData() {
+    localStorage.setItem('areaData', JSON.stringify(areaData));
+  }
+</script>
+
+</body>
+</html>
