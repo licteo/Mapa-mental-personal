@@ -63,7 +63,7 @@
 
     .listContainer {
       margin-top: 20px;
-      width: 300px;
+      width: 320px;
       display: none;
       flex-direction: column;
       align-items: center;
@@ -101,9 +101,13 @@
       background: #2980b9;
     }
 
-    #backBtn {
+    #backBtn, #resetBtn {
       background: #e67e22;
-      margin-top: 15px;
+      margin-top: 10px;
+    }
+
+    #resetBtn {
+      background: #e74c3c;
     }
 
     @keyframes fadeIn {
@@ -123,6 +127,7 @@
   <ul id="itemList"></ul>
   <button id="addItemBtn">Agregar elemento</button>
   <button id="backBtn">Volver</button>
+  <button id="resetBtn">Resetear todo</button>
 </div>
 
 <script>
@@ -133,6 +138,7 @@
   const itemList = document.getElementById('itemList');
   const addItemBtn = document.getElementById('addItemBtn');
   const backBtn = document.getElementById('backBtn');
+  const resetBtn = document.getElementById('resetBtn');
 
   const areas = [
     'Familia',
@@ -146,16 +152,12 @@
   ];
 
   // Cargar datos guardados o iniciar vacío
-  let areaData = JSON.parse(localStorage.getItem('areaData')) || {
-    Familia: [],
-    Trabajo: [],
-    Amistades: [],
-    Salud: [],
-    Espiritualidad: [],
-    Estudio: [],
-    Finanzas: [],
-    Casa: []
-  };
+  let areaData = JSON.parse(localStorage.getItem('areaData')) || {};
+  areas.forEach(area => {
+    if (!areaData[area]) {
+      areaData[area] = [];
+    }
+  });
 
   centerButton.addEventListener('click', () => {
     clearAreas();
@@ -196,7 +198,19 @@
     itemList.innerHTML = '';
     areaData[areaName].forEach((item, idx) => {
       const li = document.createElement('li');
-      li.textContent = item;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = item.completed;
+      checkbox.onchange = () => {
+        item.completed = checkbox.checked;
+        saveData();
+      };
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = item.text;
+      textSpan.style.marginLeft = '8px';
+
       const delBtn = document.createElement('button');
       delBtn.textContent = 'X';
       delBtn.style.background = 'red';
@@ -205,16 +219,19 @@
         saveData();
         renderList(areaName);
       };
+
+      li.appendChild(checkbox);
+      li.appendChild(textSpan);
       li.appendChild(delBtn);
       itemList.appendChild(li);
     });
   }
 
   addItemBtn.addEventListener('click', () => {
-    const item = prompt('Agregar nuevo elemento:');
-    if (item) {
+    const itemText = prompt('Agregar nuevo elemento:');
+    if (itemText) {
       const currentArea = areaTitle.innerText;
-      areaData[currentArea].push(item);
+      areaData[currentArea].push({ text: itemText, completed: false });
       saveData();
       renderList(currentArea);
     }
@@ -223,6 +240,13 @@
   backBtn.addEventListener('click', () => {
     listContainer.style.display = 'none';
     areasContainer.style.display = 'flex';
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (confirm('¿Seguro que quieres borrar todo? Esta acción no se puede deshacer.')) {
+      localStorage.removeItem('areaData');
+      location.reload();
+    }
   });
 
   function saveData() {
