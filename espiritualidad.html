@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área Espiritual</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+    nav {
+      width: 220px;
+      background-color: #f2f2f2;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+    nav button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      background-color: #ddd;
+      cursor: pointer;
+    }
+    #content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #editor, #tasks, #calendar, #reminders, #steps, #meals, #diary {
+      display: none;
+    }
+    .toolbar button {
+      margin-right: 5px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .task-item input {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <button onclick="showSection('editor')">📝 Notas</button>
+    <button onclick="showSection('tasks')">☑️ Tareas</button>
+    <button onclick="showSection('calendar')">📅 Calendario</button>
+    <button onclick="showSection('reminders')">⏰ Recordatorio</button>
+    <button onclick="showSection('steps')">👣 Pasos</button>
+    <button onclick="showSection('meals')">🍽️ Comidas</button>
+    <button onclick="showSection('diary')">📖 Diario</button>
+  </nav>
+  <div id="content">
+    <div id="editor">
+      <div class="toolbar">
+        <button onclick="format('bold')">Negrita</button>
+        <button onclick="format('underline')">Subrayado</button>
+        <button onclick="format('insertUnorderedList')">Lista</button>
+      </div>
+      <div id="editorContent" contenteditable="true" style="border:1px solid #ccc; padding:10px; min-height:200px;"></div>
+      <button onclick="saveText()">Guardar</button>
+      <button onclick="clearText()">Borrar</button>
+      <button onclick="downloadText()">Descargar</button>
+    </div>
+
+    <div id="tasks">
+      <input type="text" id="taskInput" placeholder="Escribe una tarea" />
+      <button onclick="addTask()">Agregar</button>
+      <div id="taskList"></div>
+    </div>
+
+    <div id="calendar">
+      <input type="date" id="calendarDate" />
+      <textarea id="calendarNote" placeholder="Nota para esta fecha..."></textarea>
+      <button onclick="saveCalendarNote()">Guardar nota</button>
+      <div id="calendarNotes"></div>
+    </div>
+
+    <div id="reminders">
+      <input type="time" id="reminderTime" />
+      <input type="text" id="reminderText" placeholder="Mensaje" />
+      <button onclick="setReminder()">Activar Recordatorio</button>
+    </div>
+
+    <div id="steps">
+      <input type="number" id="stepsInput" placeholder="Pasos de hoy" />
+      <button onclick="saveSteps()">Guardar</button>
+      <div id="stepsLog"></div>
+    </div>
+
+    <div id="meals">
+      <h3>Registro de Comidas</h3>
+      <label>Desayuno:</label><textarea id="breakfast"></textarea><br />
+      <label>Almuerzo:</label><textarea id="lunch"></textarea><br />
+      <label>Cena:</label><textarea id="dinner"></textarea><br />
+      <label>Snacks:</label><textarea id="snacks"></textarea><br />
+      <button onclick="saveMeals()">Guardar</button>
+    </div>
+
+    <div id="diary">
+      <h3>📖 Diario Personal</h3>
+      <input type="date" id="diaryDate" />
+      <textarea id="diaryEntry" placeholder="Escribe tu reflexión del día..." style="width:100%; height:150px;"></textarea>
+      <button onclick="saveDiaryEntry()">Guardar entrada</button>
+      <div id="diaryLog"></div>
+    </div>
+  </div>
+
+  <script>
+    function showSection(id) {
+      const sections = ['editor', 'tasks', 'calendar', 'reminders', 'steps', 'meals', 'diary'];
+      sections.forEach(section => {
+        document.getElementById(section).style.display = section === id ? 'block' : 'none';
+      });
+    }
+
+    function format(command) {
+      document.execCommand(command);
+    }
+
+    function saveText() {
+      localStorage.setItem('spiritual_notes', document.getElementById('editorContent').innerHTML);
+    }
+
+    function clearText() {
+      document.getElementById('editorContent').innerHTML = '';
+      localStorage.removeItem('spiritual_notes');
+    }
+
+    function downloadText() {
+      const text = document.getElementById('editorContent').innerText;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'notas.txt';
+      link.click();
+    }
+
+    document.getElementById('editorContent').innerHTML = localStorage.getItem('spiritual_notes') || '';
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const task = document.createElement('div');
+      task.className = 'task-item';
+      task.innerHTML = `<input type='checkbox'> <span>${input.value}</span>`;
+      document.getElementById('taskList').appendChild(task);
+      input.value = '';
+    }
+
+    function saveCalendarNote() {
+      const date = document.getElementById('calendarDate').value;
+      const note = document.getElementById('calendarNote').value;
+      localStorage.setItem('calendar_' + date, note);
+      loadCalendarNotes();
+    }
+
+    function loadCalendarNotes() {
+      const output = document.getElementById('calendarNotes');
+      output.innerHTML = '';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('calendar_')) {
+          output.innerHTML += `<p><strong>${key.replace('calendar_', '')}</strong>: ${localStorage.getItem(key)}</p>`;
+        }
+      }
+    }
+    loadCalendarNotes();
+
+    function setReminder() {
+      const time = document.getElementById('reminderTime').value;
+      const text = document.getElementById('reminderText').value;
+      const now = new Date();
+      const target = new Date();
+      const [hours, minutes] = time.split(':');
+      target.setHours(+hours);
+      target.setMinutes(+minutes);
+      target.setSeconds(0);
+      const delay = target.getTime() - now.getTime();
+      if (delay > 0) {
+        setTimeout(() => alert('⏰ Recordatorio: ' + text), delay);
+      } else {
+        alert('Elige una hora futura.');
+      }
+    }
+
+    function saveSteps() {
+      const steps = document.getElementById('stepsInput').value;
+      const date = new Date().toLocaleDateString();
+      const key = 'steps_' + date;
+      localStorage.setItem(key, steps);
+      loadSteps();
+    }
+
+    function loadSteps() {
+      const output = document.getElementById('stepsLog');
+      output.innerHTML = '';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('steps_')) {
+          output.innerHTML += `<p>${key.replace('steps_', '')}: ${localStorage.getItem(key)} pasos</p>`;
+        }
+      }
+    }
+    loadSteps();
+
+    function saveMeals() {
+      const data = {
+        breakfast: document.getElementById('breakfast').value,
+        lunch: document.getElementById('lunch').value,
+        dinner: document.getElementById('dinner').value,
+        snacks: document.getElementById('snacks').value
+      };
+      localStorage.setItem('meals_today', JSON.stringify(data));
+    }
+
+    function saveDiaryEntry() {
+      const date = document.getElementById('diaryDate').value;
+      const entry = document.getElementById('diaryEntry').value;
+      localStorage.setItem('diary_' + date, entry);
+      loadDiaryLog();
+    }
+
+    function loadDiaryLog() {
+      const log = document.getElementById('diaryLog');
+      log.innerHTML = '';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('diary_')) {
+          log.innerHTML += `<p><strong>${key.replace('diary_', '')}</strong>: ${localStorage.getItem(key)}</p>`;
+        }
+      }
+    }
+    loadDiaryLog();
+  </script>
+</body>
+</html>
