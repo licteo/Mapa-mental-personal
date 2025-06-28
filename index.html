@@ -1,26 +1,146 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Áreas de la Vida</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programas Mentales</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="icon.png">
+  <script src="https://kit.fontawesome.com/4b8b59b5b2.js" crossorigin="anonymous"></script>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans text-gray-900">
-  <div class="min-h-screen flex flex-col items-center justify-center p-6">
-    <h1 class="text-4xl font-bold mb-10">Áreas de la Vida</h1>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl w-full">
-      <a href="espiritualidad.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-blue-50">Espiritualidad</a>
-      <a href="salud.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-green-50">Salud</a>
-      <a href="familia.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-yellow-50">Familia</a>
-      <a href="pareja.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-pink-50">Pareja</a>
-      <a href="amistades.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-purple-50">Amistades</a>
-      <a href="trabajo.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-indigo-50">Trabajo</a>
-      <a href="finanzas.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-red-50">Finanzas</a>
-      <a href="casa.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-gray-50">Casa</a>
-      <a href="estudio.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-teal-50">Estudio</a>
-      <a href="recreacion.html" class="block bg-white shadow-md rounded-lg p-6 hover:bg-orange-50">Recreación</a>
+<body>
+  <header>
+    <h1>Programas Mentales</h1>
+    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+      <input id="global-search" type="text" placeholder="Buscar en todos los programas..." style="flex:1; max-width: 260px; padding: 0.4rem; border-radius: 0.4rem; border: 1px solid #ccc;" />
+      <select id="tag-filter" style="max-width: 140px; padding: 0.4rem; border-radius: 0.4rem; border: 1px solid #ccc;"><option value="">Filtrar por etiqueta</option></select>
+      <span id="points-display" style="font-weight:bold; color:#ff9800; margin-right:0.5rem;">🏆 0</span>
+      <button id="achievements-btn" title="Ver logros" style="font-size:1.3em;">🥇</button>
+      <button id="stats-btn">Estadísticas</button>
+      <button id="test-alarm-btn" title="Probar alarma" style="background: #ff9800; color: white; border: none; border-radius: 0.4rem; padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.9rem;">🔔 Probar</button>
+      <button id="test-sounds-btn" title="Probar sonidos" style="background: #17a2b8; color: white; border: none; border-radius: 0.4rem; padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.9rem;">🔊 Sonidos</button>
+      <button id="darkmode-btn">Modo oscuro</button>
+      <button id="export-all-pdf">Exportar todo a PDF</button>
+    </div>
+  </header>
+  <main id="main-content">
+    <section class="programs-grid">
+      <div class="program-card espiritual" data-programa="espiritual">
+        <i class="fas fa-star"></i>
+        <span>Programa Espiritual</span>
+      </div>
+      <div class="program-card cuerpo" data-programa="cuerpo">
+        <i class="fas fa-heartbeat"></i>
+        <span>Programa Cuerpo</span>
+      </div>
+      <div class="program-card familia" data-programa="familia">
+        <i class="fas fa-users"></i>
+        <span>Programa Familia</span>
+      </div>
+      <div class="program-card trabajo" data-programa="trabajo">
+        <i class="fas fa-briefcase"></i>
+        <span>Programa Trabajo</span>
+      </div>
+      <div class="program-card estudio" data-programa="estudio">
+        <i class="fas fa-book"></i>
+        <span>Programa Estudio</span>
+      </div>
+      <div class="program-card recreacion" data-programa="recreacion">
+        <i class="fas fa-futbol"></i>
+        <span>Programa Recreación</span>
+      </div>
+      <div class="program-card casa" data-programa="casa">
+        <i class="fas fa-home"></i>
+        <span>Programa Casa</span>
+      </div>
+      <div class="program-card social" data-programa="social">
+        <i class="fas fa-comments"></i>
+        <span>Programa Social</span>
+      </div>
+    </section>
+    <section id="program-detail" class="hidden">
+      <button id="back-btn">&larr; Volver</button>
+      <div id="backup-restore-bar" style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+        <button id="backup-btn">Respaldar datos</button>
+        <button id="restore-btn">Restaurar datos</button>
+        <input type="file" id="restore-file" accept="application/json" style="display:none;" />
+        <button id="export-program-pdf">Exportar este programa a PDF</button>
+        <button id="share-program-btn">Compartir</button>
+      </div>
+      <h2 id="program-title"></h2>
+      <div id="notes-toolbar"></div>
+      <div id="program-notes" style="height: 180px;"></div>
+      <input id="notes-tags" type="text" placeholder="Etiquetas (separadas por coma)" style="margin-top:0.5rem; width:100%; border-radius:0.4rem; border:1px solid #ccc; padding:0.4rem;" />
+      <div id="notes-tags-list" style="margin-bottom:1rem;"></div>
+      <button id="notes-history-btn" style="margin-bottom:1rem;">Historial de notas</button>
+    </section>
+  </main>
+  <div id="stats-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-stats">&times;</span>
+      <h2>Estadísticas</h2>
+      <canvas id="chart-actividades" height="180"></canvas>
+      <canvas id="chart-recordatorios" height="180"></canvas>
+      <canvas id="chart-notas" height="180"></canvas>
     </div>
   </div>
+  <div id="search-results-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-search-results">&times;</span>
+      <h2>Resultados de búsqueda</h2>
+      <div id="search-results-list"></div>
+    </div>
+  </div>
+  <div id="history-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-history">&times;</span>
+      <h2>Historial</h2>
+      <div id="history-list"></div>
+    </div>
+  </div>
+  <div id="share-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-share">&times;</span>
+      <h2>Compartir programa</h2>
+      <button id="share-copy">Copiar al portapapeles</button>
+      <button id="share-whatsapp">Compartir por WhatsApp</button>
+      <button id="share-email">Compartir por correo</button>
+    </div>
+  </div>
+  <div id="achievements-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-achievements">&times;</span>
+      <h2>Logros y puntos</h2>
+      <div id="achievements-list"></div>
+    </div>
+  </div>
+  <div id="test-sounds-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-test-sounds">&times;</span>
+      <h2>🔊 Probar Sonidos del Sistema</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <button class="sound-test-btn" data-sound="default">🔔 Sonido por defecto</button>
+        <button class="sound-test-btn" data-sound="notification">📢 Notificación</button>
+        <button class="sound-test-btn" data-sound="alarm">🚨 Alarma</button>
+        <button class="sound-test-btn" data-sound="bell">🔔 Campana</button>
+        <button class="sound-test-btn" data-sound="chime">🎵 Carillón</button>
+        <button class="sound-test-btn" data-sound="ding">💫 Ding</button>
+        <button class="sound-test-btn" data-sound="ping">📡 Ping</button>
+        <button class="sound-test-btn" data-sound="pop">💭 Pop</button>
+        <button class="sound-test-btn" data-sound="success">✅ Éxito</button>
+        <button class="sound-test-btn" data-sound="warning">⚠️ Advertencia</button>
+      </div>
+      <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem;">
+        <h3>💡 Información</h3>
+        <p>Estos son los sonidos disponibles para tus recordatorios. Puedes probarlos aquí y luego seleccionar el que prefieras al programar un recordatorio.</p>
+      </div>
+    </div>
+  </div>
+  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </body>
-</html>
+</html> 

@@ -1,0 +1,1331 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f4f9 0%, #e0e7ff 100%);
+  color: #23234a;
+}
+header {
+  background: linear-gradient(90deg, #6c63ff 60%, #a084e8 100%);
+  color: #fff;
+  padding: 1.5rem 0 1rem 0;
+  text-align: center;
+  box-shadow: 0 2px 16px rgba(108,99,255,0.10);
+  border-bottom-left-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+}
+header > div {
+  flex-wrap: wrap;
+}
+.programs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 2.5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.program-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.2rem 1.2rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(108,99,255,0.10);
+  font-size: 1.22rem;
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+  background: linear-gradient(135deg, #fff 60%, #f4f4f9 100%);
+  border: 1.5px solid #ececff;
+}
+.program-card i {
+  font-size: 2.7rem;
+  margin-bottom: 0.8rem;
+  filter: drop-shadow(0 2px 6px rgba(108,99,255,0.10));
+}
+.program-card.espiritual { background: #a084e8; color: #fff; }
+.program-card.espiritual i { color: #fffbe7; }
+.program-card.cuerpo { background: #4caf50; color: #fff; }
+.program-card.cuerpo i { color: #eaffea; }
+.program-card.familia { background: #ff9800; color: #fff; }
+.program-card.familia i { color: #fff3e0; }
+.program-card.trabajo { background: #2196f3; color: #fff; }
+.program-card.trabajo i { color: #e3f2fd; }
+.program-card.estudio { background: #ffd600; color: #222; }
+.program-card.estudio i { color: #fffde7; }
+.program-card.recreacion { background: #e53935; color: #fff; }
+.program-card.recreacion i { color: #ffebee; }
+.program-card.casa { background: #8d6e63; color: #fff; }
+.program-card.casa i { color: #efebe9; }
+.program-card.social { background: #00bcd4; color: #fff; }
+.program-card.social i { color: #e0f7fa; }
+.program-card:hover {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 16px 40px rgba(108,99,255,0.18);
+  background: linear-gradient(135deg, #e0e7ff 60%, #fff 100%);
+}
+#program-detail {
+  max-width: 540px;
+  margin: 2.5rem auto;
+  background: #fff;
+  border-radius: 1.3rem;
+  box-shadow: 0 8px 32px rgba(108,99,255,0.13);
+  padding: 2.2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+#program-detail.hidden {
+  display: none;
+}
+#back-btn {
+  align-self: flex-start;
+  background: linear-gradient(90deg, #6c63ff 60%, #a084e8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.55rem 1.3rem;
+  font-size: 1.05rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.08);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+#back-btn:hover {
+  background: linear-gradient(90deg, #a084e8 60%, #6c63ff 100%);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.13);
+}
+#program-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+#notes-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+#notes-toolbar button {
+  background: #f4f4f9;
+  border: 1px solid #ccc;
+  border-radius: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+#notes-toolbar button:hover {
+  background: #e0e0ff;
+}
+#program-notes {
+  background: #fff;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  min-height: 120px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+.ql-toolbar {
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.ql-container {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+@media (max-width: 600px) {
+  .programs-grid {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  #program-detail {
+    padding: 1rem;
+  }
+  header > div {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  header > div > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  #backup-restore-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  #backup-restore-bar > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+.actividad-bloque {
+  background: #f7f6fd;
+  border-left: 5px solid #6c63ff;
+  border-radius: 0.7rem;
+  margin-bottom: 1.2rem;
+  padding: 1.2rem;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.06);
+  transition: all 0.3s ease;
+}
+.actividad-bloque:hover {
+  box-shadow: 0 4px 16px rgba(108,99,255,0.12);
+  transform: translateY(-2px);
+}
+.actividad-bloque strong {
+  color: #6c63ff;
+  font-weight: 600;
+}
+.actividad-nombre {
+  font-weight: 600;
+  color: #333;
+  transition: all 0.3s ease;
+}
+.actividad-tarea {
+  color: #555;
+  transition: all 0.3s ease;
+}
+.actividad-acciones {
+  margin-top: 0.5rem;
+}
+.actividad-etiquetas {
+  margin: 0.8rem 0;
+}
+.actividad-botones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .toggle-switch {
+    width: 45px;
+    height: 22px;
+  }
+  .toggle-switch.small {
+    width: 35px;
+    height: 18px;
+  }
+  .toggle-slider:before {
+    height: 16px;
+    width: 16px;
+  }
+  .toggle-switch.small .toggle-slider:before {
+    height: 12px;
+    width: 12px;
+  }
+  input:checked + .toggle-slider:before {
+    transform: translateX(23px);
+  }
+  .toggle-switch.small input:checked + .toggle-slider:before {
+    transform: translateX(17px);
+  }
+  .actividad-toggle,
+  .tarea-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  .accion-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  .accion-texto {
+    margin-left: 0;
+  }
+}
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  margin: auto;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  position: relative;
+}
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 1rem;
+  }
+}
+body.dark-mode {
+  background: #181824;
+  color: #e0e0e0;
+}
+.dark-mode header {
+  background: #23234a;
+  color: #fff;
+}
+.dark-mode .program-card {
+  background: #23234a;
+  color: #e0e0e0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.dark-mode .program-card i {
+  color: #fffbe7;
+}
+.dark-mode #program-detail {
+  background: #23234a;
+  color: #e0e0e0;
+}
+.dark-mode #program-notes,
+.dark-mode .ql-container {
+  background: #23234a;
+  color: #e0e0e0;
+}
+.dark-mode .modal-content {
+  background: #23234a;
+  color: #e0e0e0;
+}
+.dark-mode .actividad-bloque {
+  background: #23234a;
+  color: #e0e0e0;
+  border-left: 5px solid #6c63ff;
+}
+.highlight-search {
+  background: #ffe082;
+  color: #222;
+  border-radius: 0.2em;
+  padding: 0 0.2em;
+}
+.tag-chip {
+  display: inline-block;
+  background: #e0e0ff;
+  color: #23234a;
+  border-radius: 0.7em;
+  padding: 0.15em 0.7em;
+  font-size: 0.95em;
+  margin: 0 0.2em 0.2em 0;
+}
+.dark-mode .tag-chip {
+  background: #6c63ff;
+  color: #fff;
+}
+button, .btn-agregar, .btn-editar, .btn-eliminar, .btn-recordatorio, .btn-historial {
+  background: linear-gradient(90deg, #6c63ff 60%, #a084e8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 0.15rem 0.2rem;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.08);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+button:hover, .btn-agregar:hover, .btn-editar:hover, .btn-eliminar:hover, .btn-recordatorio:hover, .btn-historial:hover {
+  background: linear-gradient(90deg, #a084e8 60%, #6c63ff 100%);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.13);
+}
+/* Estilos para toggles de activación */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-right: 0.5rem;
+}
+.toggle-switch.small {
+  width: 40px;
+  height: 20px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+.toggle-switch.small .toggle-slider:before {
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+}
+input:checked + .toggle-slider {
+  background-color: #6c63ff;
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+.toggle-switch.small input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+/* Estilos para elementos inactivos */
+.inactivo {
+  opacity: 0.5;
+  text-decoration: line-through;
+  color: #999 !important;
+}
+/* Estilos para la estructura de actividades */
+.actividad-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.actividad-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.tarea-section {
+  margin-bottom: 0.5rem;
+}
+.tarea-toggle {
+  display: flex;
+  align-items: center;
+}
+.acciones-section {
+  margin-bottom: 0.5rem;
+}
+.accion-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3rem;
+  padding: 0.2rem 0;
+}
+.accion-texto {
+  margin-left: 0.5rem;
+  flex: 1;
+}
+/* Estilos para el formulario */
+.form-section {
+  margin-bottom: 1rem;
+}
+.form-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #6c63ff;
+}
+.form-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.acciones-activas-info {
+  margin-top: 0.5rem;
+  color: #666;
+  font-style: italic;
+}
+/* Mejoras adicionales para toggles */
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #6c63ff;
+}
+
+.toggle-switch:hover .toggle-slider {
+  background-color: #b3b3b3;
+}
+
+.toggle-switch:hover input:checked + .toggle-slider {
+  background-color: #5a52d5;
+}
+
+/* Animación para elementos que se desactivan */
+.inactivo {
+  opacity: 0.5;
+  text-decoration: line-through;
+  color: #999 !important;
+  transition: all 0.3s ease;
+}
+
+/* Indicador visual para elementos activos/inactivos */
+.actividad-toggle::before,
+.tarea-toggle::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  background-color: #4caf50;
+  transition: all 0.3s ease;
+}
+
+.actividad-toggle:has(input:not(:checked))::before,
+.tarea-toggle:has(input:not(:checked))::before {
+  background-color: #f44336;
+}
+
+/* Mejoras para el formulario */
+.form-actividad {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 0.8rem;
+  border: 1px solid #e0e0e0;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-section input[type="text"] {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 0.4rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-section input[type="text"]:focus {
+  outline: none;
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.1);
+}
+
+/* Estilos para el modo oscuro */
+.dark-mode .toggle-slider {
+  background-color: #555;
+}
+
+.dark-mode input:checked + .toggle-slider {
+  background-color: #8b7cf6;
+}
+
+.dark-mode .inactivo {
+  color: #666 !important;
+}
+
+.dark-mode .form-actividad {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+.dark-mode .form-section input[type="text"] {
+  background: #333;
+  border-color: #555;
+  color: #fff;
+}
+
+.dark-mode .form-section input[type="text"]:focus {
+  border-color: #8b7cf6;
+  box-shadow: 0 0 0 2px rgba(139, 124, 246, 0.1);
+}
+
+/* Responsive mejorado */
+@media (max-width: 480px) {
+  .actividad-bloque {
+    padding: 1rem;
+  }
+  
+  .actividad-botones {
+    flex-direction: column;
+  }
+  
+  .actividad-botones button {
+    width: 100%;
+    margin-bottom: 0.3rem;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+  }
+  
+  .form-buttons button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Estilos para checkboxes de completado */
+.completion-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.completion-checkbox.small {
+  width: 16px;
+  height: 16px;
+}
+
+.completion-checkbox input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.completion-checkbox.small .checkmark {
+  width: 16px;
+  height: 16px;
+  border-width: 1.5px;
+}
+
+.completion-checkbox:hover .checkmark {
+  border-color: #6c63ff;
+  background-color: #f8f8ff;
+}
+
+.completion-checkbox input:checked ~ .checkmark {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.completion-checkbox.small .checkmark:after {
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+.completion-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Estilos para elementos completados */
+.completada {
+  text-decoration: line-through;
+  color: #4caf50 !important;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Fecha de completado */
+.fecha-completado {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-left: 3px solid #4caf50;
+}
+
+/* Mejoras en la estructura de acciones */
+.accion-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0;
+  border-radius: 0.3rem;
+  transition: background-color 0.3s ease;
+}
+
+.accion-item:hover {
+  background-color: rgba(108, 99, 255, 0.05);
+}
+
+.accion-item.completada {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Botón de reiniciar */
+.btn-reset-completado {
+  background: linear-gradient(90deg, #ff9800 60%, #ff5722 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-reset-completado:hover {
+  background: linear-gradient(90deg, #ff5722 60%, #ff9800 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+/* Indicadores visuales mejorados */
+.actividad-bloque.completada {
+  border-left-color: #4caf50;
+  background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
+}
+
+.actividad-bloque.completada .actividad-nombre {
+  color: #2e7d32;
+}
+
+/* Modo oscuro para checkboxes */
+.dark-mode .checkmark {
+  background-color: #333;
+  border-color: #555;
+}
+
+.dark-mode .completion-checkbox:hover .checkmark {
+  border-color: #8b7cf6;
+  background-color: #2a2a2a;
+}
+
+.dark-mode .completion-checkbox input:checked ~ .checkmark {
+  background-color: #66bb6a;
+  border-color: #66bb6a;
+}
+
+.dark-mode .completada {
+  color: #66bb6a !important;
+}
+
+.dark-mode .fecha-completado {
+  background: #1b5e20;
+  color: #a5d6a7;
+  border-left-color: #66bb6a;
+}
+
+.dark-mode .accion-item:hover {
+  background-color: rgba(139, 124, 246, 0.1);
+}
+
+.dark-mode .accion-item.completada {
+  background-color: rgba(102, 187, 106, 0.1);
+}
+
+/* Animaciones para completado */
+@keyframes checkmarkAnimation {
+  0% {
+    transform: scale(0) rotate(45deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(45deg);
+  }
+  100% {
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+.completion-checkbox input:checked ~ .checkmark:after {
+  animation: checkmarkAnimation 0.3s ease-in-out;
+}
+
+/* Responsive para checkboxes */
+@media (max-width: 600px) {
+  .completion-checkbox {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .completion-checkbox.small {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .checkmark {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .completion-checkbox.small .checkmark {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .checkmark:after {
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+  }
+  
+  .completion-checkbox.small .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 3px;
+    height: 6px;
+  }
+}
+
+/* Estilos para estadísticas de completado */
+.stats-completado {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.stats-completado h3 {
+  color: #6c63ff;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.8rem;
+  text-align: center;
+  border: 1px solid #e9ecef;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6c63ff;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.stat-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 4px;
+  transition: width 0.8s ease;
+}
+
+.stat-percentage {
+  font-size: 0.8rem;
+  color: #4caf50;
+  font-weight: bold;
+}
+
+/* Botón de estadísticas de completado */
+.btn-stats-completado {
+  background: linear-gradient(90deg, #4caf50 60%, #66bb6a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.btn-stats-completado:hover {
+  background: linear-gradient(90deg, #66bb6a 60%, #4caf50 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Modo oscuro para estadísticas */
+.dark-mode .stats-completado {
+  border-top-color: #444;
+}
+
+.dark-mode .stat-item {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+.dark-mode .stat-number {
+  color: #8b7cf6;
+}
+
+.dark-mode .stat-label {
+  color: #aaa;
+}
+
+.dark-mode .stat-bar {
+  background-color: #444;
+}
+
+.dark-mode .stat-progress {
+  background: linear-gradient(90deg, #66bb6a 0%, #81c784 100%);
+}
+
+.dark-mode .stat-percentage {
+  color: #66bb6a;
+}
+
+.dark-mode .btn-stats-completado {
+  background: linear-gradient(90deg, #66bb6a 60%, #81c784 100%);
+}
+
+.dark-mode .btn-stats-completado:hover {
+  background: linear-gradient(90deg, #81c784 60%, #66bb6a 100%);
+  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.3);
+}
+
+/* Responsive para estadísticas */
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  
+  .stat-item {
+    padding: 0.8rem;
+  }
+  
+  .stat-number {
+    font-size: 1.3rem;
+  }
+  
+  .btn-stats-completado {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+}
+
+/* Estilos para el modal de recordatorio */
+.recordatorio-modal {
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2000;
+}
+
+.recordatorio-content {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 3px solid #ff9800;
+  border-radius: 1rem;
+  max-width: 400px;
+  animation: recordatorioEntrada 0.5s ease-out;
+}
+
+.recordatorio-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+  color: white;
+  border-radius: 0.8rem 0.8rem 0 0;
+  margin: -1rem -1rem 1rem -1rem;
+}
+
+.recordatorio-icon {
+  font-size: 2rem;
+  animation: recordatorioPulso 1s infinite;
+}
+
+.recordatorio-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.recordatorio-body {
+  padding: 0 1rem 1rem 1rem;
+}
+
+.recordatorio-body p {
+  margin: 0;
+  line-height: 1.5;
+  color: #333;
+  font-size: 1rem;
+}
+
+.recordatorio-buttons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem 1rem;
+}
+
+.btn-recordatorio-ok {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-recordatorio-ok:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-recordatorio-ir {
+  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-recordatorio-ir:hover {
+  background: linear-gradient(90deg, #66bb6a 0%, #4caf50 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Animaciones para recordatorios */
+@keyframes recordatorioEntrada {
+  0% {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes recordatorioPulso {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes highlightRecordatorio {
+  0% {
+    background-color: rgba(255, 152, 0, 0.1);
+    transform: scale(1);
+  }
+  25% {
+    background-color: rgba(255, 152, 0, 0.3);
+    transform: scale(1.02);
+  }
+  50% {
+    background-color: rgba(255, 152, 0, 0.2);
+    transform: scale(1.01);
+  }
+  75% {
+    background-color: rgba(255, 152, 0, 0.1);
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+/* Modo oscuro para recordatorios */
+.dark-mode .recordatorio-content {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-color: #ff9800;
+}
+
+.dark-mode .recordatorio-body p {
+  color: #fff;
+}
+
+.dark-mode .btn-recordatorio-ok {
+  background: #495057;
+}
+
+.dark-mode .btn-recordatorio-ok:hover {
+  background: #343a40;
+}
+
+/* Responsive para recordatorios */
+@media (max-width: 600px) {
+  .recordatorio-content {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+  
+  .recordatorio-buttons {
+    flex-direction: column;
+  }
+  
+  .recordatorio-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .recordatorio-icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Estilos para el formulario de recordatorios con sonidos */
+.recordatorio-form-container {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.recordatorio-form-container input[type="datetime-local"],
+.recordatorio-form-container select {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.4rem;
+  border-radius: 0.3rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.9rem;
+}
+
+.recordatorio-form-container button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.3rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.recordatorio-form-container button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-test-sound {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-test-sound:hover {
+  background: #138496;
+}
+
+.btn-save-reminder {
+  background: #28a745;
+  color: white;
+}
+
+.btn-save-reminder:hover {
+  background: #218838;
+}
+
+.btn-cancel-reminder {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-cancel-reminder:hover {
+  background: #c82333;
+}
+
+/* Estilos para la información del recordatorio */
+.reminder-info {
+  background: #e8f5e8;
+  border: 1px solid #c3e6c3;
+  border-radius: 0.3rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.reminder-info .reminder-title {
+  font-weight: bold;
+  color: #2e7d32;
+  margin-bottom: 0.3rem;
+}
+
+.reminder-info .reminder-details {
+  color: #555;
+  margin-bottom: 0.2rem;
+}
+
+.reminder-info .reminder-sound {
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.btn-cancel-reminder-info {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s ease;
+}
+
+.btn-cancel-reminder-info:hover {
+  background: #c82333;
+}
+
+/* Modo oscuro para recordatorios */
+.dark-mode .recordatorio-form-container {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+.dark-mode .recordatorio-form-container input[type="datetime-local"],
+.dark-mode .recordatorio-form-container select {
+  background-color: #4a5568;
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.dark-mode .reminder-info {
+  background: #2d5016;
+  border-color: #4a7c59;
+}
+
+.dark-mode .reminder-info .reminder-title {
+  color: #68d391;
+}
+
+.dark-mode .reminder-info .reminder-details,
+.dark-mode .reminder-info .reminder-sound {
+  color: #cbd5e0;
+}
+
+/* Responsive para recordatorios */
+@media (max-width: 600px) {
+  .recordatorio-form-container {
+    padding: 0.8rem;
+  }
+  
+  .recordatorio-form-container input[type="datetime-local"],
+  .recordatorio-form-container select,
+  .recordatorio-form-container button {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .recordatorio-form-container button:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Estilos para los botones de prueba de sonidos */
+.sound-test-btn {
+  background: linear-gradient(135deg, #6c63ff 0%, #a084e8 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.2);
+}
+
+.sound-test-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.3);
+  background: linear-gradient(135deg, #a084e8 0%, #6c63ff 100%);
+}
+
+.sound-test-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(108,99,255,0.2);
+}
+
+/* Modo oscuro para botones de sonido */
+.dark-mode .sound-test-btn {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.dark-mode .sound-test-btn:hover {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* Responsive para botones de sonido */
+@media (max-width: 600px) {
+  .sound-test-btn {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+} 
