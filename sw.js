@@ -1,32 +1,46 @@
-self.addEventListener('install', function(event) {
-const indexPage = new Request('https://licteo.github.io/Reproductor-IPTV');
-event.waitUntil(
-fetch(indexPage).then(function(response) {
-return caches.open('pwabuilder-offline').then(function(cache) {
-console.log('[PWA Builder] Cached index page during Install'+ response.url);
-return cache.put(indexPage, response);
+
+```
+const CACHE_NAME = 'iptv-player-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/app.js',
+  'https://esm.sh/hls.js@1.4.12'
+];
+
+// Instalar el service worker
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
 });
-}));
+
+// Activar el service worker
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
 });
-self.addEventListener('fetch', function(event) {
-const updateCache = function(request){
-return caches.open('pwabuilder-offline').then(function (cache) {
-return fetch(request).then(function (response) {
-console.log('[PWA Builder] add page to offline'+response.url)
-return cache.put(request, response);
+
+// Interceptar peticiones y servir desde caché
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
+      })
+  );
 });
-});
-};
-event.waitUntil(updateCache(event.request));
-event.respondWith(
-fetch(event.request).catch(function(error) {
-console.log( '[PWA Builder] Network request Failed. Serving content from cache: ' + error );
-return caches.open('pwabuilder-offline').then(function (cache) {
-return cache.match(event.request).then(function (matching) {
-var report =  !matching || matching.status == 404?Promise.reject('no-match'): matching;
-return report
-});
-});
-})
-);
-})

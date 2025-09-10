@@ -1,9 +1,2 @@
-if (navigator.serviceWorker.controller) {
-console.log('[PWA Builder] active service worker found, no need to register')
-} else {
-navigator.serviceWorker.register('/sw.js', {
-scope: 'https://licteo.github.io/Reproductor-IPTV'
-}).then(function(reg) {
-console.log('Service worker has been registered for scope:'+ reg.scope);
-});
-}
+// removed entire IPTVPlayer class - refactored into separate modules
+// removed all imports and class definition - now in main.js

@@ -1,146 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Programas Mentales</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="icon.png">
-  <script src="https://kit.fontawesome.com/4b8b59b5b2.js" crossorigin="anonymous"></script>
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IPTV Player">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Precargar recursos críticos -->
+    <link rel="preload" href="https://esm.sh/hls.js@1.4.12" as="script">
+    <link rel="preload" href="styles.css" as="style">
+    
+    <!-- Tema para navegadores -->
+    <meta name="theme-color" content="#00d4ff">
+    <meta name="msapplication-navbutton-color" content="#00d4ff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Reproductor IPTV</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Programas Mentales</h1>
-    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-      <input id="global-search" type="text" placeholder="Buscar en todos los programas..." style="flex:1; max-width: 260px; padding: 0.4rem; border-radius: 0.4rem; border: 1px solid #ccc;" />
-      <select id="tag-filter" style="max-width: 140px; padding: 0.4rem; border-radius: 0.4rem; border: 1px solid #ccc;"><option value="">Filtrar por etiqueta</option></select>
-      <span id="points-display" style="font-weight:bold; color:#ff9800; margin-right:0.5rem;">🏆 0</span>
-      <button id="achievements-btn" title="Ver logros" style="font-size:1.3em;">🥇</button>
-      <button id="stats-btn">Estadísticas</button>
-      <button id="test-alarm-btn" title="Probar alarma" style="background: #ff9800; color: white; border: none; border-radius: 0.4rem; padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.9rem;">🔔 Probar</button>
-      <button id="test-sounds-btn" title="Probar sonidos" style="background: #17a2b8; color: white; border: none; border-radius: 0.4rem; padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.9rem;">🔊 Sonidos</button>
-      <button id="darkmode-btn">Modo oscuro</button>
-      <button id="export-all-pdf">Exportar todo a PDF</button>
+    <div class="container">
+        <h1>Reproductor IPTV</h1>
+        
+        <!-- Sección para cargar canales individuales -->
+        <div class="input-section">
+            <input type="text" id="channelUrl" placeholder="Pega la URL del canal (.m3u8)">
+            <button id="loadChannel" class="btn-primary">Cargar Canal</button>
+        </div>
+        
+        <!-- Sección para cargar lista M3U -->
+        <div class="input-section">
+            <input type="file" id="m3uFile" accept=".m3u,.m3u8" class="file-input">
+            <button id="loadList" class="btn-secondary">Cargar Lista M3U</button>
+            <button id="clearList" class="btn-secondary" style="background-color: #ff4444;">Limpiar Lista</button>
+        </div>
+        
+        <!-- Sección para buscar canales -->
+        <div class="input-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar canal...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <label class="favorites-toggle">
+                <input type="checkbox" id="favoritesToggle">
+                <span class="toggle-label">★ Solo Favoritos</span>
+            </label>
+        </div>
+        
+        <!-- Lista de canales -->
+        <div id="channelList" class="channel-list">
+            <p class="empty-message">No hay canales cargados</p>
+        </div>
+        
+        <!-- Reproductor de video -->
+        <div class="video-container">
+            <video id="videoPlayer" controls></video>
+            <div id="loading" class="loading">Cargando...</div>
+            <!-- Controles de cambio de canal -->
+            <div class="channel-controls">
+                <button class="channel-btn prev-channel" id="prevChannel">◀ Anterior</button>
+                <button class="channel-btn favorite-current" id="favoriteCurrent" title="Marcar como favorito">★</button>
+                <span class="current-channel-info" id="currentChannelInfo"></span>
+                <button class="channel-btn next-channel" id="nextChannel">Siguiente ▶</button>
+            </div>
+        </div>
+        
+        <!-- Botón de play manual para móvil (oculto por defecto) -->
+        <div id="playButton" class="play-button" style="display: none;">
+            <button class="btn-primary">▶ Reproducir</button>
+        </div>
     </div>
-  </header>
-  <main id="main-content">
-    <section class="programs-grid">
-      <div class="program-card espiritual" data-programa="espiritual">
-        <i class="fas fa-star"></i>
-        <span>Programa Espiritual</span>
-      </div>
-      <div class="program-card cuerpo" data-programa="cuerpo">
-        <i class="fas fa-heartbeat"></i>
-        <span>Programa Cuerpo</span>
-      </div>
-      <div class="program-card familia" data-programa="familia">
-        <i class="fas fa-users"></i>
-        <span>Programa Familia</span>
-      </div>
-      <div class="program-card trabajo" data-programa="trabajo">
-        <i class="fas fa-briefcase"></i>
-        <span>Programa Trabajo</span>
-      </div>
-      <div class="program-card estudio" data-programa="estudio">
-        <i class="fas fa-book"></i>
-        <span>Programa Estudio</span>
-      </div>
-      <div class="program-card recreacion" data-programa="recreacion">
-        <i class="fas fa-futbol"></i>
-        <span>Programa Recreación</span>
-      </div>
-      <div class="program-card casa" data-programa="casa">
-        <i class="fas fa-home"></i>
-        <span>Programa Casa</span>
-      </div>
-      <div class="program-card social" data-programa="social">
-        <i class="fas fa-comments"></i>
-        <span>Programa Social</span>
-      </div>
-    </section>
-    <section id="program-detail" class="hidden">
-      <button id="back-btn">&larr; Volver</button>
-      <div id="backup-restore-bar" style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-        <button id="backup-btn">Respaldar datos</button>
-        <button id="restore-btn">Restaurar datos</button>
-        <input type="file" id="restore-file" accept="application/json" style="display:none;" />
-        <button id="export-program-pdf">Exportar este programa a PDF</button>
-        <button id="share-program-btn">Compartir</button>
-      </div>
-      <h2 id="program-title"></h2>
-      <div id="notes-toolbar"></div>
-      <div id="program-notes" style="height: 180px;"></div>
-      <input id="notes-tags" type="text" placeholder="Etiquetas (separadas por coma)" style="margin-top:0.5rem; width:100%; border-radius:0.4rem; border:1px solid #ccc; padding:0.4rem;" />
-      <div id="notes-tags-list" style="margin-bottom:1rem;"></div>
-      <button id="notes-history-btn" style="margin-bottom:1rem;">Historial de notas</button>
-    </section>
-  </main>
-  <div id="stats-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-stats">&times;</span>
-      <h2>Estadísticas</h2>
-      <canvas id="chart-actividades" height="180"></canvas>
-      <canvas id="chart-recordatorios" height="180"></canvas>
-      <canvas id="chart-notas" height="180"></canvas>
-    </div>
-  </div>
-  <div id="search-results-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-search-results">&times;</span>
-      <h2>Resultados de búsqueda</h2>
-      <div id="search-results-list"></div>
-    </div>
-  </div>
-  <div id="history-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-history">&times;</span>
-      <h2>Historial</h2>
-      <div id="history-list"></div>
-    </div>
-  </div>
-  <div id="share-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-share">&times;</span>
-      <h2>Compartir programa</h2>
-      <button id="share-copy">Copiar al portapapeles</button>
-      <button id="share-whatsapp">Compartir por WhatsApp</button>
-      <button id="share-email">Compartir por correo</button>
-    </div>
-  </div>
-  <div id="achievements-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-achievements">&times;</span>
-      <h2>Logros y puntos</h2>
-      <div id="achievements-list"></div>
-    </div>
-  </div>
-  <div id="test-sounds-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="close-test-sounds">&times;</span>
-      <h2>🔊 Probar Sonidos del Sistema</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-        <button class="sound-test-btn" data-sound="default">🔔 Sonido por defecto</button>
-        <button class="sound-test-btn" data-sound="notification">📢 Notificación</button>
-        <button class="sound-test-btn" data-sound="alarm">🚨 Alarma</button>
-        <button class="sound-test-btn" data-sound="bell">🔔 Campana</button>
-        <button class="sound-test-btn" data-sound="chime">🎵 Carillón</button>
-        <button class="sound-test-btn" data-sound="ding">💫 Ding</button>
-        <button class="sound-test-btn" data-sound="ping">📡 Ping</button>
-        <button class="sound-test-btn" data-sound="pop">💭 Pop</button>
-        <button class="sound-test-btn" data-sound="success">✅ Éxito</button>
-        <button class="sound-test-btn" data-sound="warning">⚠️ Advertencia</button>
-      </div>
-      <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem;">
-        <h3>💡 Información</h3>
-        <p>Estos son los sonidos disponibles para tus recordatorios. Puedes probarlos aquí y luego seleccionar el que prefieras al programar un recordatorio.</p>
-      </div>
-    </div>
-  </div>
-  <script src="main.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "hls.js": "https://esm.sh/hls.js@1.4.12"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
 </body>
-</html> 
+</html>
