@@ -1,11 +1,19 @@
-
-```
 const CACHE_NAME = 'iptv-player-v1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/styles.css',
-  '/app.js',
+  '/main.js',
+  '/storage.js',
+  '/filters.js',
+  '/utils.js',
+  '/player.js',
+  '/ui.js',
+  '/favorites.js',
+  '/parser.js',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/manifest.json',
   'https://esm.sh/hls.js@1.4.12'
 ];
 
@@ -14,6 +22,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -28,7 +37,7 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -43,4 +52,11 @@ self.addEventListener('fetch', event => {
         return fetch(event.request);
       })
   );
+});
+
+// Manejar mensajes para actualizaciones
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });

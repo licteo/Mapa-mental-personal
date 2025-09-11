@@ -329,6 +329,8 @@ video {
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 150px;
+    max-width: 150px;
+    width: 100%;
 }
 
 .filters-container select:hover {
@@ -493,4 +495,30 @@ video::-webkit-media-controls {
     font-size: 11px;
     color: #00d4ff;
     margin-left: 8px;
+}
+
+/* Mejoras para el modo PWA en móvil */
+@media (display-mode: standalone) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        max-width: 100%;
+        padding: 20px;
+        border-radius: 15px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+    }
+    
+    .input-section {
+        margin-bottom: 15px;
+    }
+    
+    .channel-list {
+        max-height: 250px;
+    }
 }

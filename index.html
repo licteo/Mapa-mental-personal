@@ -8,11 +8,73 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="IPTV Player">
     <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png">
     <link rel="manifest" href="/manifest.json">
+    
+    <!-- Agregar iconos para iOS -->
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png">
+    
+    <!-- Agregar metas adicionales para iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IPTV Player">
+    
+    <!-- Agregar theme-color para navegadores modernos -->
+    <meta name="theme-color" content="#00d4ff">
+    <meta name="msapplication-navbutton-color" content="#00d4ff">
     
     <!-- Precargar recursos críticos -->
     <link rel="preload" href="https://esm.sh/hls.js@1.4.12" as="script">
     <link rel="preload" href="styles.css" as="style">
+    
+    <!-- Instalar automáticamente cuando sea posible -->
+    <script>
+        // Detectar si el navegador soporta PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado correctamente');
+                        
+                        // Verificar si hay una actualización disponible
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Nueva versión disponible
+                                    if (confirm('¡Hay una nueva versión disponible! ¿Deseas actualizar?')) {
+                                        newWorker.postMessage({ action: 'skipWaiting' });
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar ServiceWorker:', error);
+                    });
+            });
+        }
+        
+        // Detectar cuando la app se ejecuta en modo standalone
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('App ejecutándose en modo standalone');
+            document.body.classList.add('pwa-installed');
+        }
+        
+        // Agregar animación CSS dinámica
+        const style = document.createElement('style');
+        style.textContent = `
+            .pwa-installed .install-button {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
     
     <!-- Tema para navegadores -->
     <meta name="theme-color" content="#00d4ff">

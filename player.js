@@ -44,19 +44,35 @@ export class Player {
             startLevel: -1,
             startFragPrefetch: true,
             appendErrorMaxRetry: 3,
-            enableWorker: true
+            enableWorker: true,
+            // Nuevas configuraciones para evitar el cambio de velocidad inicial
+            startLevel: 0, // Empezar con el primer nivel (menor calidad)
+            capLevelToPlayerSize: false, // No limitar por tamaño del player
+            autoStartLoad: true,
+            levelSwitchingStrategy: 'CONTINUOUS', // Cambios de nivel más suaves
+            progressive: true, // Carga progresiva
+            lowLatencyMode: false // Desactivar modo baja latencia para estabilidad
         });
 
         this.hls.loadSource(url);
         this.hls.attachMedia(this.video);
 
         this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            // Configurar velocidad de reproducción normal desde el inicio
             this.video.playbackRate = 1;
             this.video.defaultPlaybackRate = 1;
             
+            // Forzar velocidad normal en cualquier cambio de velocidad
+            this.video.addEventListener('ratechange', () => {
+                if (this.video.playbackRate !== 1) {
+                    this.video.playbackRate = 1;
+                    this.video.defaultPlaybackRate = 1;
+                }
+            });
+            
             setTimeout(() => {
                 this.attemptPlay();
-            }, 100);
+            }, 500); // Aumentar ligeramente el timeout para estabilidad
             
             this.showLoading(false);
         });
@@ -117,4 +133,3 @@ export class Player {
         if (this.onError) this.onError(message);
     }
 }
-

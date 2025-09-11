@@ -91,6 +91,9 @@ class IPTVPlayer {
         const languages = parser.getLanguages(this.channels);
         
         this.ui.renderFilters(categories, languages, () => this.applyFilters(), () => this.clearFilters());
+        
+        // Aplicar sincronización inicial de filtros
+        setTimeout(() => this.applyFilters(), 100);
     }
 
     renderChannels() {
@@ -176,6 +179,32 @@ class IPTVPlayer {
         const languageFilter = document.getElementById('languageFilter')?.value || '';
         this.filters.setLanguageFilter(languageFilter);
         
+        // Sincronizar filtros: si se selecciona un idioma, actualizar categorías
+        if (languageFilter) {
+            const filteredByLang = this.channels.filter(ch => 
+                ch.detectedLanguage === languageFilter
+            );
+            const availableCategories = parser.getCategories(filteredByLang);
+            this.updateCategoryOptions(availableCategories);
+        } else {
+            // Si no hay filtro de idioma, mostrar todas las categorías
+            const allCategories = parser.getCategories(this.channels);
+            this.updateCategoryOptions(allCategories);
+        }
+        
+        // Sincronizar filtros: si se selecciona una categoría, actualizar idiomas
+        if (categoryFilter) {
+            const filteredByCat = this.channels.filter(ch => 
+                ch.group === categoryFilter
+            );
+            const availableLanguages = parser.getLanguages(filteredByCat);
+            this.updateLanguageOptions(availableLanguages);
+        } else {
+            // Si no hay filtro de categoría, mostrar todos los idiomas
+            const allLanguages = parser.getLanguages(this.channels);
+            this.updateLanguageOptions(allLanguages);
+        }
+        
         this.renderChannels();
     }
 
@@ -183,6 +212,9 @@ class IPTVPlayer {
         this.filters.clear();
         this.ui.elements.searchInput.value = '';
         if (this.ui.elements.favoritesToggle) this.ui.elements.favoritesToggle.checked = false;
+        
+        // Restablecer todas las opciones de filtros
+        this.detectLanguagesAndCategories();
         this.applyFilters();
     }
 
@@ -203,6 +235,63 @@ class IPTVPlayer {
         } else {
             this.ui.showError('Error al cargar el stream');
         }
+    }
+
+    updateCategoryOptions(availableCategories) {
+        const categorySelect = document.getElementById('categoryFilter');
+        if (!categorySelect) return;
+        
+        const currentValue = categorySelect.value;
+        const categoryCounts = this.getFilteredCategoryCounts(availableCategories);
+        
+        categorySelect.innerHTML = '<option value="">Todas las categorías</option>' +
+            availableCategories.map(cat => 
+                `<option value="${cat}" ${cat === currentValue ? 'selected' : ''}>${cat} (${categoryCounts[cat] || 0})</option>`
+            ).join('');
+    }
+
+    updateLanguageOptions(availableLanguages) {
+        const languageSelect = document.getElementById('languageFilter');
+        if (!languageSelect) return;
+        
+        const currentValue = languageSelect.value;
+        const languageCounts = this.getFilteredLanguageCounts(availableLanguages);
+        
+        languageSelect.innerHTML = '<option value="">Todos los idiomas</option>' +
+            availableLanguages.map(lang => {
+                const displayName = lang === 'Unknown' ? 'Desconocido' : lang;
+                return `<option value="${lang}" ${lang === currentValue ? 'selected' : ''}>${displayName} (${languageCounts[lang] || 0})</option>`;
+            }).join('');
+    }
+
+    getFilteredCategoryCounts(categories) {
+        const counts = {};
+        const languageFilter = this.filters.languageFilter;
+        
+        this.channels.forEach(channel => {
+            if (languageFilter && channel.detectedLanguage !== languageFilter) return;
+            
+            const category = channel.group || 'Sin categoría';
+            if (categories.includes(category)) {
+                counts[category] = (counts[category] || 0) + 1;
+            }
+        });
+        return counts;
+    }
+
+    getFilteredLanguageCounts(languages) {
+        const counts = {};
+        const categoryFilter = this.filters.categoryFilter;
+        
+        this.channels.forEach(channel => {
+            if (categoryFilter && channel.group !== categoryFilter) return;
+            
+            const language = channel.detectedLanguage || 'Unknown';
+            if (languages.includes(language)) {
+                counts[language] = (counts[language] || 0) + 1;
+            }
+        });
+        return counts;
     }
 }
 
