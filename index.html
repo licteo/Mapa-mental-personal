@@ -2,144 +2,496 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IPTV Player">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png">
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Agregar iconos para iOS -->
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png">
-    
-    <!-- Agregar metas adicionales para iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IPTV Player">
-    
-    <!-- Agregar theme-color para navegadores modernos -->
-    <meta name="theme-color" content="#00d4ff">
-    <meta name="msapplication-navbutton-color" content="#00d4ff">
-    
-    <!-- Precargar recursos críticos -->
-    <link rel="preload" href="https://esm.sh/hls.js@1.4.12" as="script">
-    <link rel="preload" href="styles.css" as="style">
-    
-    <!-- Instalar automáticamente cuando sea posible -->
-    <script>
-        // Detectar si el navegador soporta PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registrado correctamente');
-                        
-                        // Verificar si hay una actualización disponible
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Nueva versión disponible
-                                    if (confirm('¡Hay una nueva versión disponible! ¿Deseas actualizar?')) {
-                                        newWorker.postMessage({ action: 'skipWaiting' });
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(error => {
-                        console.log('Error al registrar ServiceWorker:', error);
-                    });
-            });
-        }
-        
-        // Detectar cuando la app se ejecuta en modo standalone
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('App ejecutándose en modo standalone');
-            document.body.classList.add('pwa-installed');
-        }
-        
-        // Agregar animación CSS dinámica
-        const style = document.createElement('style');
-        style.textContent = `
-            .pwa-installed .install-button {
-                display: none !important;
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-    
-    <!-- Tema para navegadores -->
-    <meta name="theme-color" content="#00d4ff">
-    <meta name="msapplication-navbutton-color" content="#00d4ff">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Reproductor IPTV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Parqueadero</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #3b82f6;
+            --light-blue: #dbeafe;
+            --dark-blue: #1e40af;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .history-card {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+            color: var(--white);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .vehicles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .vehicle-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .vehicle-card:hover {
+            background: var(--white);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .vehicle-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-plate {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .vehicle-type {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            background: var(--light-blue);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+        }
+
+        .vehicle-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 0.875rem;
+            color: var(--gray-800);
+            font-weight: 500;
+        }
+
+        .vehicle-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: var(--gray-500);
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .total-cost {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-top: 1rem;
+            text-align: right;
+        }
+
+        .print-card {
+            grid-column: 1 / -1;
+        }
+
+        .print-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(75, 85, 99, 0.3);
+        }
+
+        .monthly-report-card {
+            grid-column: 1 / -1;
+        }
+
+        .monthly-results {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .monthly-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            background: var(--white);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .summary-card-total {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .summary-card-total .summary-number {
+            color: white;
+        }
+
+        .summary-card-total .summary-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        .notification-error {
+            background: #ef4444;
+        }
+
+        .notification-success {
+            background: #10b981;
+        }
+
+        .notification-info {
+            background: #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .print-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Reproductor IPTV</h1>
-        
-        <!-- Sección para cargar canales individuales -->
-        <div class="input-section">
-            <input type="text" id="channelUrl" placeholder="Pega la URL del canal (.m3u8)">
-            <button id="loadChannel" class="btn-primary">Cargar Canal</button>
-        </div>
-        
-        <!-- Sección para cargar lista M3U -->
-        <div class="input-section">
-            <input type="file" id="m3uFile" accept=".m3u,.m3u8" class="file-input">
-            <button id="loadList" class="btn-secondary">Cargar Lista M3U</button>
-            <button id="clearList" class="btn-secondary" style="background-color: #ff4444;">Limpiar Lista</button>
-        </div>
-        
-        <!-- Sección para buscar canales -->
-        <div class="input-section">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Buscar canal...">
-                <span class="search-icon">🔍</span>
-            </div>
-            <label class="favorites-toggle">
-                <input type="checkbox" id="favoritesToggle">
-                <span class="toggle-label">★ Solo Favoritos</span>
-            </label>
-        </div>
-        
-        <!-- Lista de canales -->
-        <div id="channelList" class="channel-list">
-            <p class="empty-message">No hay canales cargados</p>
-        </div>
-        
-        <!-- Reproductor de video -->
-        <div class="video-container">
-            <video id="videoPlayer" controls></video>
-            <div id="loading" class="loading">Cargando...</div>
-            <!-- Controles de cambio de canal -->
-            <div class="channel-controls">
-                <button class="channel-btn prev-channel" id="prevChannel">◀ Anterior</button>
-                <button class="channel-btn favorite-current" id="favoriteCurrent" title="Marcar como favorito">★</button>
-                <span class="current-channel-info" id="currentChannelInfo"></span>
-                <button class="channel-btn next-channel" id="nextChannel">Siguiente ▶</button>
-            </div>
-        </div>
-        
-        <!-- Botón de play manual para móvil (oculto por defecto) -->
-        <div id="playButton" class="play-button" style="display: none;">
-            <button class="btn-primary">▶ Reproducir</button>
+    <div id="app">
+        <div class="container">
+            <header id="appHeader" class="app-header">
+                <!-- Header content will be rendered by HeaderComponent -->
+            </header>
+
+            <main id="appMain" class="main-content">
+                <!-- Registration Form Card -->
+                <section class="card registration-form-card">
+                    <div id="registrationForm">
+                        <!-- Registration form will be rendered by RegistrationFormComponent -->
+                    </div>
+                </section>
+
+                <!-- Active Vehicles Card -->
+                <section class="card active-vehicles-card">
+                    <h2 class="card-title">Vehículos Activos</h2>
+                    <div id="activeVehicles" class="vehicles-list"></div>
+                </section>
+
+                <!-- History Card -->
+                <section class="card history-card">
+                    <h2 class="card-title">Historial de Vehículos</h2>
+                    <div id="historyVehicles" class="vehicles-list"></div>
+                </section>
+
+                <!-- Print Buttons Card -->
+                <section class="card print-card">
+                    <div id="printButtons">
+                        <!-- Print buttons will be rendered by PrintButtonsComponent -->
+                    </div>
+                </section>
+
+                <!-- Monthly Report Card -->
+                <section class="card monthly-report-card">
+                    <h2 class="card-title">📊 Reporte Mensual</h2>
+                    <div class="form-group">
+                        <label for="monthSelect" class="form-label">Seleccionar Mes</label>
+                        <input type="month" id="monthSelect" class="form-input">
+                    </div>
+                    <div class="print-buttons">
+                        <button class="btn btn-primary" onclick="parkingManager.generateMonthlyReport()">
+                            Generar Reporte Mensual
+                        </button>
+                    </div>
+                    <div id="monthlyReportResults" class="monthly-results hidden">
+                        <h3 class="card-title">Resumen del Mes</h3>
+                        <div id="monthlySummary" class="monthly-summary"></div>
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
-    
+
+    <!-- Use ES6 modules with import map -->
     <script type="importmap">
     {
         "imports": {
-            "hls.js": "https://esm.sh/hls.js@1.4.12"
+            "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
         }
     }
     </script>
