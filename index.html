@@ -1,732 +1,313 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestión Planillas Parqueadero</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+  <title>IPTV VR Pro</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#051019">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- PWA Setup -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
-    <!-- Estilos y Fuentes -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fuente tipo "Mano" para simular escritura si se desea, o limpia para reporte -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto:wght@400;700&display=swap"
-        rel="stylesheet">
+  <style>
+    :root{--bg:#051019;--accent:#00d4ff;--danger:#ff4444;--success:#39ff14;--warning:#ffbb00}
+    *{box-sizing:border-box;font-family:sans-serif}
+    
+    html, body { margin:0; padding:0; background:var(--bg); color:#e6eef6; height: 100%; overflow: hidden; }
+    
+    .container { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; max-width:980px; margin:0 auto; padding:15px; display: flex; flex-direction: column; position: relative; z-index: 1; }
+    body.is-vr .container { display: none; }
+    
+    .input-section{display:flex; gap:8px; margin:8px 0; flex-wrap:wrap}
+    input{padding:12px; border-radius:8px; border:1px solid #22303a; background:#0b1115; color:#fff; font-size:16px}
+    #nameIn { flex: 1; min-width: 90px; }
+    #urlIn { flex: 2; min-width: 140px; }
+    
+    button{border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; transition: 0.2s}
+    .btn-load{background:var(--accent); color:#000}
+    .btn-vr{background:#ff00ff; color:#fff}
 
-    <!-- Librerías: Base de Datos, OCR, PDF -->
-    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
-    <script src="https://unpkg.com/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.js"></script>
-    <!-- Tesseract para leer fotos -->
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    .channel-list { background:#071018; border-radius:10px; padding:5px; min-height: 150px; max-height: 350px; overflow-y: auto; border:1px solid #16202a; margin-bottom:15px; }
+    .channel-item{padding:12px; border-bottom:1px solid #16202a; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
+    .channel-item.active{border-left:4px solid var(--accent); background:#111b25}
+    
+    #vr-layer { display:none; position:fixed; inset:0; z-index:10000; background:#000}
+    body.is-vr #vr-layer { display:block }
+    #vr-divider { position: fixed; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255, 255, 255, 0.4); z-index: 10002; transform: translateX(-50%); pointer-events: none; }
+    #vr-click-surface { position:fixed; inset:0; z-index:10005; background: transparent; cursor: pointer; touch-action: none; }
+    #btn-exit-vr { position:fixed; top:20px; right:20px; z-index:10010; background:var(--danger); color:white; padding:15px 25px; border-radius:30px; font-weight:bold; border:2px solid white; }
+    
+    #feedback{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:var(--accent); padding:20px 40px; border-radius:40px; display:none; z-index:20000; border:2px solid var(--accent); font-size: 24px; font-weight: bold; pointer-events:none; }
 
-    <style>
-        /* General Styles */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-        }
+    .video-container{ background:#000; border-radius:12px; position:relative; overflow:hidden; width:100%; aspect-ratio: 16 / 9; border:1px solid #22303a; margin-top: 10px; margin-bottom: 30px; }
+    #videoPlayer, #webFrame { width:100%; height:100%; border:none; display:none; }
+  </style>
 
-        .handwritten {
-            font-family: 'Patrick Hand', cursive;
-            color: #2563eb;
-        }
-
-        /* Sheet Container Styles */
-        .sheet-container {
-            background-color: white;
-            background-image:
-                linear-gradient(#e5e7eb 1px, transparent 1px),
-                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
-            background-size: 20px 20px;
-            background-position: -1px -1px;
-            border: 1px solid #d1d5db;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-
-        /* Input Styles */
-        .sheet-input {
-            background: rgba(255, 255, 255, 0.8);
-            border: none;
-            border-bottom: 1px dashed #9ca3af;
-            width: 100%;
-            padding: 4px;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.1rem;
-            color: #1e40af;
-            box-sizing: border-box;
-        }
-
-        .sheet-input:focus {
-            outline: none;
-            border-bottom: 2px solid #2563eb;
-            background: white;
-        }
-
-        /* Table Header Styles */
-        .sheet-header {
-            background-color: #e5e7eb;
-            border: 1px solid #9ca3af;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 4px;
-            text-align: center;
-        }
-
-        /* Tab Styles */
-        .active-tab {
-            border-bottom: 4px solid #2563eb;
-            color: #2563eb;
-            font-weight: bold;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* OCR Scanning Animation Styles */
-        .ocr-scanning {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ocr-scanning::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #00ff00;
-            animation: scan 2s infinite;
-            box-shadow: 0 0 10px #00ff00;
-        }
-
-        @keyframes scan {
-            0% {
-                top: 0
-            }
-
-            100% {
-                top: 100%
-            }
-        }
-
-        /* Print Styles */
-        @media print {
-
-            /* General Print Styles */
-            body {
-                background-color: white;
-                font-size: 12pt;
-            }
-
-            /* Hide UI Elements */
-            header,
-            nav,
-            .fixed {
-                display: none;
-            }
-
-            /* Table Styles */
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-            th,
-            td {
-                border: 1px solid #9ca3af;
-                padding: 6px;
-                text-align: left;
-            }
-
-            th {
-                background-color: #e5e7eb;
-                font-weight: bold;
-            }
-
-            /* Page Break Styles */
-            .sheet-container {
-                margin-bottom: 25mm;
-                /* Add margin to ensure space for footer if needed */
-                page-break-inside: avoid;
-                /* Prevents breaking inside the container */
-            }
-
-            /* Ensure tables don't break in the middle of a row */
-            table,
-            tr,
-            td,
-            th,
-            tbody,
-            thead,
-            tfoot {
-                page-break-inside: avoid !important;
-            }
-
-            /* Ensure images don't break */
-            img {
-                page-break-inside: avoid;
-            }
-        }
-    </style>
+  <script type="importmap">{ "imports": { "hls.js": "https://esm.sh/hls.js@1.4.12" } }</script>
 </head>
+<body>
 
-<body class="h-screen flex flex-col">
+  <div id="feedback"></div>
 
-    <!-- HEADER -->
-    <header class="bg-blue-800 text-white p-3 shadow-lg flex justify-between items-center z-20">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-book-open"></i>
-            <h1 class="font-bold text-lg">Libro Digital</h1>
-        </div>
-        <div class="flex gap-3 text-sm">
-            <input type="date" id="currentDate" class="bg-blue-900 border border-blue-600 rounded px-2 py-1 text-white"
-                onchange="app.loadDate()">
-            <button onclick="app.exportPDF()"
-                class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded shadow flex items-center gap-1">
-                <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Imprimir</span>
-            </button>
-        </div>
-    </header>
+  <div id="vr-layer">
+    <div id="vr-divider"></div>
+    <div id="vr-click-surface"></div>
+    <button id="btn-exit-vr" onclick="window.toggleVR()">SALIR VR</button>
+    <a-scene embedded loading-screen="enabled:false" vr-mode-ui="enabled:false">
+      <a-entity camera look-controls="enabled: false" position="0 1.6 0">
+        <a-entity id="vr-display-container" position="0 0 -3.6">
+          <a-video id="screenLeft" src="#videoPlayer" width="4.4" height="2.47" material="shader:flat"></a-video>
+          <a-video id="screenRight" src="#videoPlayer" width="4.4" height="2.47" material="shader:flat"></a-video>
+        </a-entity>
+      </a-entity>
+      <a-sky color="#000"></a-sky>
+    </a-scene>
+  </div>
 
-    <!-- TABS DE PLANILLAS -->
-    <nav class="bg-white shadow overflow-x-auto whitespace-nowrap z-10">
-        <div class="flex px-2">
-            <button onclick="app.switchTab('motos')"
-                class="tab-btn active-tab px-4 py-3 flex items-center gap-2 transition" data-target="motos">
-                <i class="fa-solid fa-motorcycle"></i> Motos
-            </button>
-            <button onclick="app.switchTab('particulares')"
-                class="tab-btn px-4 py-3 flex items-center gap-2 transition" data-target="particulares">
-                <i class="fa-solid fa-car"></i> Particulares
-            </button>
-            <button onclick="app.switchTab('busetas')"
-                class="tab-btn px-4 py-3 flex items-center gap-
-
-
-
-
-2 transition" data-target="busetas">
-                <i class="fa-solid fa-bus"></i> Busetas
-            </button>
-            <button onclick="app.switchTab('mecanicos')"
-                class="tab-btn px-4 py-3 flex items-center gap-2 transition" data-target="mecanicos">
-                <i class="fa-solid fa-wrench"></i> Mecánicos
-            </button>
-        </div>
-    </nav>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto p-2 bg-gray-100 relative">
-
-        <!-- TOOLBAR FLOTANTE -->
-        <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-30">
-            <button onclick="app.addRow()"
-                class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-2xl hover:scale-110 transition">
-                <i class="fa-solid fa-plus"></i>
-            </button>
-            <button onclick="app.openCamera()"
-                class="bg-gray-800 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-xl hover:scale-110 transition">
-                <i class="fa-solid fa-camera"></i>
-            </button>
-        </div>
-
-        <!-- VISTAS DE PLANILLAS -->
-
-        <!-- 1. MOTOS (Diario y Mensual) -->
-        <section id="view-motos" class="view-section space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Tabla Diario -->
-                <div class="sheet-container p-2 rounded">
-                    <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2">MOTOS DIARIOS</h3>
-                    <table class="w-full text-sm border-collapse" id="table-motos-diario">
-                        <thead>
-                            <tr>
-                                <th class="sheet-header">Propietario</th>
-                                <th class="sheet-header">Placa</th>
-                                <th class="sheet-header">Asistencia</th>
-                                <th class="sheet-header">Pago</th>
-                                <th class="sheet-header w-6"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="body-motos-diario"></tbody>
-                    </table>
-                </div>
-                <!-- Tabla Mensual -->
-                <div class="sheet-container p-2 rounded">
-                    <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2">MOTOS MENSUAL</h3>
-                    <table class="w-full text-sm border-collapse" id="table-motos-mensual">
-                        <thead>
-                            <tr>
-                                <th class="sheet-header">Propietario</th>
-                                <th class="sheet-header">Placa</th>
-                                <th class="sheet-header">Asistencia</th>
-                                <th class="sheet-header">Pago</th>
-                                <th class="sheet-header w-6"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="body-motos-mensual"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. PARTICULARES -->
-        <section id="view-particulares" class="view-section hidden space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="sheet-container p-2 rounded">
-                    <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2">PARTICULARES DIARIOS</h3>
-                    <table class="w-full text-sm border-collapse" id="table-part-diario">
-                        <thead>
-                            <tr>
-                                <th class="sheet-header">Propietario</th>
-                                <th class="sheet-header">Placa</th>
-                                <th class="sheet-header">Asistencia</th>
-                                <th class="sheet-header">Pago</th>
-                                <th class="sheet-header w-6"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="body-part-diario"></tbody>
-                    </table>
-                </div>
-                <div class="sheet-container p-2 rounded">
-                    <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2">PARTICULARES MENSUAL</h3>
-                    <table class="w-full text-sm border-collapse" id="table-part-mensual">
-                        <thead>
-                            <tr>
-                                <th class="sheet-header">Propietario</th>
-                                <th class="sheet-header">Placa</th>
-                                <th class="sheet-header">Entró/Mes</th>
-                                <th class="sheet-header">Pago</th>
-                                <th class="sheet-header">Saldo</th>
-                                <th class="sheet-header w-6"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="body-part-mensual"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. BUSETAS -->
-        <section id="view-busetas" class="view-section hidden space-y-4">
-            <div class="flex gap-2 mb-2 overflow-x-auto pb-1">
-                <button onclick="app.setSubTab('cotrander')"
-                    class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">Cotrander</button>
-                <button onclick="app.setSubTab('lusitania')"
-                    class="bg-white text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">Lusitania</button>
-                <button onclick="app.setSubTab('flotax')"
-                    class="bg-white text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">Flotax</button>
-            </div>
-
-            <div class="sheet-container p-2 rounded">
-                <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2 uppercase" id="buseta-title">
-                    BUSETAS COTRANDER</h3>
-                <table class="w-full text-sm border-collapse" id="table-busetas">
-                    <thead>
-                        <tr>
-                            <th class="sheet-header">Propietario</th>
-                            <th class="sheet-header">Placa</th>
-                            <th class="sheet-header">Pago</th>
-                            <th class="sheet-header">Salida</th>
-                            <th class="sheet-header">Observación</th>
-                            <th class="sheet-header w-6"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="body-busetas"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- 4. PINTORES Y MECÁNICOS -->
-        <section id="view-mecanicos" class="view-section hidden">
-            <div class="sheet-container p-2 rounded max-w-2xl mx-auto">
-                <h3 class="font-bold text-gray-700 text-center border-b border-gray-300 mb-2">PINTORES Y MECÁNICOS</h3>
-                <table class="w-full text-sm border-collapse" id="table-mecanicos">
-                    <thead>
-                        <tr>
-                            <th class="sheet-header">Propietario</th>
-                            <th class="sheet-header">Placa</th>
-                            <th class="sheet-header">Pago</th>
-                            <th class="sheet-header">Observaciones</th>
-                            <th class="sheet-header w-6"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="body-mecanicos"></tbody>
-                </table>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- MODAL DE CÁMARA / OCR -->
-    <div id="ocrModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex flex-col items-center justify-center p-4">
-        <div class="relative w-full max-w-md bg-black rounded-lg overflow-hidden">
-            <video id="videoElement" autoplay playsinline class="w-full h-64 object
-
-
-
-
-cover"></video>
-            <canvas id="canvasElement" class="hidden"></canvas>
-            <div id="scanOverlay" class="absolute inset-0 border-2 border-green-400 opacity-50 hidden pointer-events-none">
-            </div>
-
-            <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                <button onclick="app.closeCamera()" class="bg-red-600 text-white p-3 rounded-full"><i
-                        class="fa-solid fa-times"></i></button>
-                <button onclick="app.captureAndScan()"
-                    class="bg-white text-black p-4 rounded-full shadow-lg border-4 border-gray-300"><i
-                        class="fa-solid fa-camera text-2xl"></i></button>
-                <label class="bg-blue-600 text-white p-3 rounded-full cursor-pointer">
-                    <i class="fa-solid fa-upload"></i>
-                    <input type="file" class="hidden" accept="image/*" onchange="app.handleFileUpload(this)">
-                </label>
-            </div>
-        </div>
-        <div id="ocrStatus" class="text-white mt-4 text-center font-mono text-sm hidden">
-            <i class="fa-solid fa-spinner fa-spin"></i> Analizando planilla... <br>
-            <span class="text-xs text-gray-400">(Esto puede tardar unos segundos)</span>
-        </div>
+  <div class="container">
+    <h1 style="text-align:center; color:var(--accent);">IPTV VR Pro</h1>
+    
+    <div class="input-section">
+      <input id="nameIn" type="text" placeholder="Nombre..." />
+      <input id="urlIn" type="text" placeholder="URL M3U8..." />
+      <button onclick="window.addUrl()" class="btn-load">AÑADIR</button>
+      <input type="file" id="fileIn" style="display:none" onchange="window.handleFile(this)" />
+      <button onclick="document.getElementById('fileIn').click()" style="background:var(--success); color:white">ARCHIVO M3U</button>
+      <button onclick="window.clearAll()" style="background:var(--danger); color:white">BORRAR TODO</button>
     </div>
 
-    <!-- LOGIC -->
-    <script>
-        const db = new Dexie("PlanillasDB");
-        db.version(1).stores({
-            rows: '++id, date, tab, subtab, data' // data será un objeto JSON con las columnas
-        });
+    <div style="display:flex; justify-content:space-between; margin: 10px 0;">
+        <button onclick="window.toggleFS()" style="background:#444; color:#fff">PANTALLA COMPLETA</button>
+        <button onclick="window.toggleVR()" class="btn-vr">MODO VR</button>
+    </div>
 
-        const app = {
-            currentDate: new Date().toISOString().split('T')[0],
-            currentTab: 'motos',
-            currentSubTab: 'cotrander', // Para busetas
+    <div class="channel-list" id="list"></div>
 
-            // CONFIGURACIÓN DE COLUMNAS POR TABLA
-            schemas: {
-                'motos': {
-                    'diario': ['propietario', 'placa', 'asistencia', 'pago'],
-                    'mensual': ['propietario', 'placa', 'asistencia', 'pago']
-                },
-                'particulares': {
-                    'diario': ['propietario', 'placa', 'asistencia', 'pago'],
-                    'mensual': ['propietario', 'placa', 'entromes', 'pago', 'saldo']
-                },
-                'busetas': {
-                    'cotrander': ['propietario', 'placa', 'pago', 'salida', 'observacion'],
-                    'lusitania': ['propietario', 'placa', 'pago', 'salida', 'observacion'],
-                    'flotax': ['propietario', 'placa', 'pago', 'salida', 'observacion']
-                },
-                'mecanicos': {
-                    'main': ['propietario', 'placa', 'pago', 'observaciones']
+    <div class="video-container" id="normalPlayerArea">
+        <div id="normal-click-surface" style="position:absolute; inset:0; z-index:10;"></div>
+        <video id="videoPlayer" crossorigin="anonymous" playsinline></video>
+        <iframe id="webFrame"></iframe>
+    </div>
+  </div>
+
+  <script type="module">
+    import Hls from "hls.js";
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW', err));
+      });
+    }
+
+    // LISTA POR DEFECTO ACTUALIZADA
+    const defaultChannels = [
+      {title:"YouTube Live 1", url:"https://youtu.be/vuTY4FDAbpA"},
+      {title:"3ABN Kids", url:"https://3abn.bozztv.com/3abn2/Kids_live/smil:Kids_live.smil/playlist.m3u8"},
+      {title:"3ABN Latino", url:"https://3abn.bozztv.com/3abn2/Lat_live/smil:Lat_live.smil/playlist.m3u8"},
+      {title:"Spirit TV", url:"https://cdnlive.myspirit.tv/LS-ATL-43240-2/index.m3u8"},
+      {title:"TVS Retro", url:"https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"},
+      {title:"Retro Plus TV", url:"https://scl.edge.grupoz.cl/retroplustvuno/live/playlist.m3u8"},
+      {title:"Canela TV International", url:"https://amg00658-amg00658c8-canelatv-international-7227.playouts.now.amagi.tv/playlist/amg00658-canelamediafast-cinemalt-canelatvinternational/playlist.m3u8"},
+      {title:"Cine Accion", url:"https://stmv6.voxtvhd.com.br/cineaccion/cineaccion/playlist.m3u8"},
+      {title:"RT UH 720", url:"https://run-rt-uh.otteravision.com/run/rt_uh/rt_uh_720.m3u8"},
+      {title:"YouTube Live 2", url:"https://youtu.be/s1Ylmj87gXY"},
+      {title:"RA ES 720", url:"https://run-ra-es.otteravision.com/run/ra_es/ra_es_720.m3u8"},
+      {title:"RT ES 720p", url:"https://run-rt-es.otteravision.com/run/rt_es/rt_es_720p_high.m3u8"},
+      {title:"Grjngo Peliculas", url:"https://amogonetworx-grjngo-2-eu.plex.wurl.tv/playlist.m3u8"},
+      {title:"Plex Master", url:"https://d3rciv7av2te5a.cloudfront.net/v1/master/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-plex/master.m3u8?ads.xumo_channelId=88889309"},
+      {title:"MyTime Spain", url:"https://appletree-mytimespain-rakuten.amagi.tv/playlist.m3u8"},
+      {title:"CNN Fast", url:"https://amg00803-cnnfast-amg00803c3-lg-es-5477.playouts.now.amagi.tv/playlist1080p.m3u8"},
+      {title:"RT Español", url:"https://rt-esp.rttv.com/live/rtesp/playlist_800Kb.m3u8"},
+      {title:"DW Español", url:"https://dwamdstream104.akamaized.net/hls/live/2015530/dwstream104/index.m3u8"},
+      {title:"CBS News NY", url:"https://www.cbsnews.com/common/video/cbsn-ny-prod.m3u8"},
+      {title:"YouTube Live 3", url:"https://youtu.be/ZA6YS0CYoTA"},
+      {title:"YouTube Live 4", url:"https://youtu.be/FV4Q9DryTG8"},
+      {title:"Avivamiento HD", url:"https://s1.abntelevision.com/avivamientoabr/stream/avivamientohd/avivamientohd/playlist.m3u8"},
+      {title:"Bendicion Channel", url:"https://s.emisoras.tv:8081/bendicionchannel/index.m3u8"},
+      {title:"Vision Dorada", url:"https://movil.ejeserver.com/live/visiondorada.m3u8"},
+      {title:"Teledorada HD", url:"https://movil.ejeserver.com/live/teledoradahd.m3u8"},
+      {title:"Oracion con Son", url:"https://canal.mediaserver.com.co/live/oracionconson.m3u8"},
+      {title:"Canica TV", url:"https://stmv4.voxtvhd.com.br/canicatv/canicatv/playlist.m3u8"},
+      {title:"NTV Live", url:"https://mist01.homestream.fun/hls/ntvlive/0_1/index.m3u8"},
+      {title:"La Morada TV", url:"https://movil.ejeserver.com/live/lamoradatv.m3u8"},
+      {title:"Onda Stereo", url:"https://stmv4.voxtvhd.com.br/ondastereo/ondastereo/playlist.m3u8"},
+      {title:"Rio TV", url:"https://cdn.amelbasoluciones.co:8081/riotv/index.fmp4.m3u8"},
+      {title:"Telebolivar", url:"https://live20.bozztv.com/akamaissh101/ssh101/telebolivar/playlist.m3u8"},
+      {title:"Tu Universo TV", url:"https://5bf8041cb3fed.streamlock.net/TUUNIVERSOTV/TUUNIVERSOTV/playlist.m3u8"},
+      {title:"Austral TV", url:"https://stmv3.voxtvhd.com.br/australtv/australtv/playlist.m3u8"},
+      {title:"GM7 Digital", url:"https://s2.tvdatta.com:3858/live/gm7digitallive.m3u8"},
+      {title:"Latacunga TV", url:"https://stmv1.voxtvhd.com.br/latacungatv/latacungatv/playlist.m3u8"},
+      {title:"TV3 Ecuador", url:"https://tv3ecuador.site/hls/stream/index.m3u8"},
+      {title:"TV Cisne", url:"https://video2.lhdserver.es/tvcisne/live.m3u8"},
+      {title:"Vos TV", url:"https://cloud37.ecuatel.com/vostv/live/manifest.m3u8"},
+      {title:"France 24 Español", url:"https://a-cdn.klowdtv.com/live2/france24sp_720p/playlist.m3u8"},
+      {title:"Viginet Venezuela", url:"https://e1.viginet.vectormax.com:5210/quickstart/114-934-21/index.m3u8"},
+      {title:"Sono Onda TV (Ecuador)", url:"https://live.obslivestream.com/sonoondatv/index.m3u8"},
+      {title:"Peru Live", url:"https://cdnhd.iblups.com/hls/902c1a0395264f269f1160efa00660e47.m3u8"},
+      {title:"Atacama Noticias (Chile)", url:"https://v2.tustreaming.cl/atacamanoticias/index.m3u8"},
+      {title:"PNT Chile", url:"https://pnt.janusmedia.tv/hls/pnt.m3u8"},
+      {title:"CN247 (Argentina)", url:"https://panel.host-live.com:19360/cn247tv/cn247tv.m3u8"},
+      {title:"Canal U (Uruguay)", url:"https://livedelta.cdn.antel.net.uy/out/u/url_canalu.m3u8"},
+      {title:"4D Mas Noticias (Paraguay)", url:"https://rds3.desdeparaguay.net/4dmasnoticiastv/4dmasnoticiastv/playlist.m3u8"},
+      {title:"800 TV (Paraguay)", url:"https://tigocloud.desdeparaguay.net/800tv/800tv/playlist.m3u8"},
+      {title:"Zoy Plus (Bolivia)", url:"https://mio.zoymilton.com/ZoyPlus/index.m3u8"},
+      {title:"Video News (Brasil)", url:"https://video01.logicahost.com.br/tvideonews/tvideonews/playlist.m3u8"},
+      {title:"Euronews Español", url:"https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/euronews-spa/euronews-es.m3u8"},
+      {title:"Impacto TV", url:"https://cloudvideo.servers10.com:8081/impactotv/index.m3u8"},
+      {title:"Milenial News", url:"https://www.milenial.news/salida/milenial.m3u8"},
+      {title:"TV Oriente", url:"https://live.obslivestream.com/tvoriente/index.m3u8"},
+      {title:"Telecolor", url:"https://live.obslivestream.com/telecolormux/index.m3u8"},
+      {title:"Unitel TV", url:"https://play.agenciastreaming.com:8081/uniteltv/index.m3u8"},
+      {title:"Viva TV", url:"https://live.obslivestream.com/vivatv/index.m3u8"},
+      {title:"Vepaco TV", url:"https://cloud.fastchannel.es/manifiest/hls/prog9/vepacotv.m3u8"}
+    ];
+
+    const state = JSON.parse(localStorage.getItem('iptv_vr_final')) || { channels: defaultChannels, current: -1, eyeGap: 1.95 };
+    const video = document.getElementById('videoPlayer');
+    const iframe = document.getElementById('webFrame');
+    const feedback = document.getElementById('feedback');
+    let hls = null;
+
+    window.saveState = () => localStorage.setItem('iptv_vr_final', JSON.stringify(state));
+
+    window.playUrl = async (rawUrl, index) => {
+      if(hls) { hls.destroy(); hls = null; }
+      video.pause(); video.src = ""; iframe.src = "";
+      state.current = index; window.saveState(); render();
+
+      if (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be')) {
+        const ytID = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:v\/|u\/\w\/|embed\/|watch\?v=))([^#\&\?]*)/)?.[1];
+        video.style.display = "none"; iframe.style.display = "block";
+        iframe.src = `https://www.youtube.com/embed/${ytID}?autoplay=1`;
+      } else {
+        iframe.style.display = "none"; video.style.display = "block";
+        if (Hls.isSupported()) {
+          hls = new Hls(); hls.loadSource(rawUrl); hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
+        } else { video.src = rawUrl; video.play().catch(()=>{}); }
+      }
+      showFeedback(state.channels[index].title);
+    };
+
+    let startY = 0, startX = 0, isDragging = false;
+    const handleStart = (e) => {
+        isDragging = true;
+        const touch = e.touches ? e.touches[0] : e;
+        startY = touch.clientY; startX = touch.clientX;
+    };
+
+    const handleEnd = (e) => {
+        if (!isDragging) return;
+        const touch = e.changedTouches ? e.changedTouches[0] : e;
+        const endY = touch.clientY; const endX = touch.clientX;
+        const diffY = startY - endY; const diffX = startX - endX;
+        const width = window.innerWidth;
+        const xPosPercent = (startX / width) * 100;
+
+        if (Math.abs(diffY) > 60) {
+            const delta = diffY > 0 ? 0.08 : -0.08;
+            state.eyeGap = Math.max(1.50, Math.min(2.80, state.eyeGap + delta));
+            updateScreens();
+            showFeedback(`Calibrar: ${state.eyeGap.toFixed(2)}`);
+            window.saveState();
+        } else if (Math.abs(diffY) < 20 && Math.abs(diffX) < 20) {
+            if (state.channels.length === 0) return;
+            if (xPosPercent < 30) {
+                state.current = (state.current - 1 + state.channels.length) % state.channels.length;
+                window.playUrl(state.channels[state.current].url, state.current);
+            } else if (xPosPercent > 70) {
+                state.current = (state.current + 1) % state.channels.length;
+                window.playUrl(state.channels[state.current].url, state.current);
+            } else {
+                if (video.style.display !== "none") {
+                    if (video.paused) { video.play(); showFeedback("PLAY"); }
+                    else { video.pause(); showFeedback("PAUSA"); }
                 }
-            },
-
-            init() {
-                document.getElementById('currentDate').value = this.currentDate;
-                this.loadDate();
-            },
-
-            switchTab(tabId) {
-                this.currentTab = tabId;
-                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-                document.getElementById('view-' + tabId).classList.remove('hidden');
-
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    if (btn.dataset.target === tabId) btn.classList.add('active-tab');
-                    else btn.classList.remove('active-tab');
-                });
-
-                // Si es busetas, asegurar render
-                if (tabId === 'busetas') this.renderTable('busetas', this.currentSubTab, 'body-busetas');
-            },
-
-            setSubTab(sub) {
-                this.currentSubTab = sub;
-                document.getElementById('buseta-title').innerText = 'BUSETAS ' + sub.toUpperCase();
-                this.renderTable('busetas', sub, 'body-busetas');
-            },
-
-            loadDate() {
-                this.currentDate = document.getElementById('currentDate').value;
-                this.refreshAllTables();
-            },
-
-            refreshAllTables() {
-                this.renderTable('motos', 'diario', 'body-motos-diario');
-                this.renderTable('motos', 'mensual', 'body-motos-mensual');
-                this.renderTable('particulares', 'diario', 'body-part-diario');
-                this.renderTable('particulares', 'mensual', 'body-part-mensual');
-                this.renderTable('busetas', this.currentSubTab, 'body-busetas');
-                this.renderTable('mecanicos', 'main', 'body-mecanicos');
-            },
-
-            async renderTable(tab, subtab, bodyId) {
-                const tbody = document.getElementById(bodyId);
-                tbody.innerHTML = '';
-
-                const rows = await db.rows
-                    .where({ date: this.currentDate, tab: tab, subtab: subtab })
-                    .toArray();
-
-                // Asegurar al menos 10 filas vacías para simular hoja completa si hay pocos datos
-                const minRows = 15;
-                const totalRows = Math.max(rows.length + 1, minRows);
-
-                for (let i = 0; i < totalRows; i++) {
-                    const rowData = rows[i] || { data: {} };
-                    const tr = document.createElement('tr');
-
-                    // Definir columnas según esquema
-                    const cols = this.schemas[tab][subtab === 'main' || tab === 'busetas' ? subtab : subtab]
-                        || this.schemas[tab][Object.keys(this.schemas[tab])[0]]; // Fallback
-
-                    let html = '';
-                    cols.forEach(col => {
-                        const val = rowData.data[col] || '';
-                        html += `
-                            <td class="border-r border-gray-300 p-0">
-                                <input type="text" class="sheet-input uppercase" 
-                                    value="${val}" 
-                                    onchange="app.saveCell(${rowData.id || 'null'}, '${tab}', '${subtab}', '${col}', this.value)"
-                                    placeholder="">
-                            </td>`;
-                    });
-
-                    // Botón borrar solo si tiene ID (existe en DB)
-                    html += `<td class="text-center">
-                        ${rowData.id ? `<button onclick="app.deleteRow(${rowData.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
-                    </td>`;
-
-                    tr.innerHTML = html;
-                    tbody.appendChild(tr);
-                }
-            },
-
-            async saveCell(id, tab, subtab, field, value) {
-                if (id) {
-                    // Actualizar existente
-                    const row = await db.rows.get(id);
-                    row.data[field] = value;
-                    await db.rows.put(row);
-                } else {
-                    // Crear nueva fila si escriben en una vacía
-                    if (value.trim() === '') return;
-                    const newData = {};
-                    newData[field] = value;
-                    await db.rows.add({
-                        date: this.currentDate,
-                        tab: tab,
-                        subtab: subtab,
-                        data: newData
-                    });
-                    this.renderTable(tab, subtab, getBodyId(tab, subtab)); // Refrescar para obtener ID
-                }
-            },
-
-            async deleteRow(id) {
-                if (confirm('¿Borrar esta línea?')) {
-                    await db.rows.delete(id);
-                    this.refreshAllTables();
-                }
-            },
-
-            addRow() {
-                // Simplemente hace focus en la última fila vacía o fuerza refresh
-                // Como renderTable genera filas vacías automáticas, esto es visual
-                document.querySelector('.active-tab').click();
-            },
-
-            // --- SECCIÓN DE CÁMARA Y OCR ---
-            openCamera() {
-                document.getElementById('ocrModal').classList.remove('hidden');
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(stream => {
-                        document.getElementById('videoElement').srcObject = stream;
-                    });
-            },
-
-            closeCamera() {
-                const video = document.getElementById('videoElement');
-                if (video
-
-
-
-
-
-
-
-.srcObject) {
-                    video.srcObject.getTracks().forEach(t => t.stop());
-                }
-                document.getElementById('ocrModal').classList.add('hidden');
-                document.getElementById('ocrStatus').classList.add('hidden');
-                document.getElementById('scanOverlay').classList.add('hidden');
-            },
-
-            handleFileUpload(input) {
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => this.processImage(e.target.result);
-                    reader.readAsDataURL(input.files[0]);
-                }
-            },
-
-            captureAndScan() {
-                const video = document.getElementById('videoElement');
-                const canvas = document.getElementById('canvasElement');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0);
-                const imgUrl = canvas.toDataURL('image/png');
-                this.processImage(imgUrl);
-            },
-
-            async processImage(imgUrl) {
-                document.getElementById('scanOverlay').classList.remove('hidden');
-                document.getElementById('scanOverlay').classList.add('ocr-scanning');
-                document.getElementById('ocrStatus').classList.remove('hidden');
-
-                try {
-                    // 1. Usar Tesseract para reconocer texto
-                    const { data: { text } } = await Tesseract.recognize(imgUrl, 'spa', {
-                        logger: m => console.log(m)
-                    });
-
-                    console.log("Texto detectado:", text);
-
-                    // 2. Procesamiento básico (Heurística simple)
-                    // Intentar encontrar placas (AAA-123 o AAA123 o números)
-                    const lines = text.split('\n');
-                    const foundPlates = [];
-
-                    // Regex para placas colombianas aprox (3 letras, 3 numeros) o similar
-                    const plateRegex = /[A-Z]{3}[-\s]?[0-9]{2,3}[A-Z]?/gi;
-
-                    lines.forEach(line => {
-                        const match = line.match(plateRegex);
-                        if (match) {
-                            match.forEach(m => foundPlates.push(m.toUpperCase().replace(/\s/g, '')));
-                        }
-                    });
-
-                    if (foundPlates.length > 0) {
-                        alert(`Se encontraron ${foundPlates.length} posibles placas. Se agregarán a la tabla actual.`);
-
-                        // Agregar a la tabla actual
-                        const tab = this.currentTab;
-                        const subtab = (tab === 'busetas') ? this.currentSubTab :
-                            (tab === 'mecanicos') ? 'main' : 'diario'; // Default a diario
-
-                        for (let plate of foundPlates) {
-                            await db.rows.add({
-                                date: this.currentDate,
-                                tab: tab,
-                                subtab: subtab,
-                                data: { placa: plate, propietario: 'FOTO-SCAN' }
-                            });
-                        }
-                        this.refreshAllTables();
-                        this.closeCamera();
-                    } else {
-                        alert("No se detectaron placas claras. Intenta escribir manualmente o tomar la foto con mejor luz y texto más claro.");
-                        this.closeCamera();
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    alert("Error al procesar la imagen.");
-                    this.closeCamera();
-                }
-            },
-
-            // --- EXPORTAR PDF ---
-            async exportPDF() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-
-                // Título
-                doc.setFontSize(16);
-                doc.text(`PLANILLA DE CONTROL - ${this.currentDate}`, 14, 15);
-
-                let startY = 25;
-
-                // Función auxiliar para agregar tabla al PDF
-                const addTableToDoc = async (title, tab, subtab, cols) => {
-                    const rows = await db.rows.where({ date: this.currentDate, tab: tab, subtab: subtab }).toArray();
-
-                    const tableData = rows.map(r => cols.map(c => r.data[c] || ''));
-                    // Rellenar filas vacías para que se vea como la hoja
-                    while (tableData.length < 25) {
-                        tableData.push(new Array(cols.length).fill(''));
-                    }
-
-                    doc.setFontSize(12);
-                    doc.text(title.toUpperCase(), 14, startY);
-
-                    doc.autoTable({
-                        startY: startY + 2,
-                        head: [cols.map(c => c.toUpperCase())],
-                        body: tableData,
-                        theme: 'grid',
-                        styles: { lineColor: [40, 40, 40], lineWidth: 0.1, minCellHeight: 8 }, // Estilo cuadriculado
-                        headStyles: { fillColor: [220, 220, 220], textColor: 0, fontStyle: 'bold' }
-                    });
-
-                    startY = doc.lastAutoTable.finalY + 15;
-                    // Salto de página si falta espacio
-                    if (startY > 250) {
-                        doc.addPage();
-                        startY = 20;
-                    }
-                };
-
-                // Lógica según qué pestaña está viendo el usuario para imprimir ESA hoja, o todas.
-                // Imprimiremos TODO el día por defecto.
-
-                // 1. Motos
-                await addTableToDoc('Motos Diarios', 'motos', 'diario', this.schemas.motos.diario);
-                await addTableToDoc('Motos Mensual', 'motos', 'mensual', this.schemas.motos.mensual);
-
-                doc.addPage(); startY = 20;
-
-                // 2. Particulares
-                await addTableToDoc('Particulares Diarios', 'particulares', 'diario', this.schemas.particulares.diario);
-                await addTableToDoc('Particulares Mensual', 'particulares', 'mensual', this.schemas.particulares.mensual);
-
-                doc.addPage(); startY = 20;
-
-                // 3. Busetas
-                await addTableToDoc('Busetas Cotrander', 'busetas', 'cotrander', this.schemas.busetas.cotrander);
-                await addTableToDoc('Busetas Lusitania', 'busetas', 'lusitania', this.schemas.busetas.lusitania);
-                await addTableToDoc('Busetas Flotax', 'busetas', 'flotax', this.schemas.busetas.flotax);
-
-                doc.save(`Planillas_${this.currentDate}.pdf`);
             }
-        };
-
-        // Helper
-        function getBodyId(tab, subtab) {
-            if (tab === 'motos') return subtab === 'diario' ? 'body-motos-diario' : 'body-motos-mensual';
-            if (tab === 'particulares') return subtab === 'diario' ? 'body-part-diario' : 'body-part-mensual';
-            if (tab === 'busetas') return 'body-busetas';
-            if (tab === 'mecanicos') return 'body-mecanicos';
         }
+        isDragging = false;
+    };
 
-        window.onload = () => app.init();
-    </script>
+    function updateScreens() {
+        const L = document.getElementById('screenLeft'), R = document.getElementById('screenRight');
+        if (L && R) {
+            L.setAttribute('position', `-${state.eyeGap} 0 0`);
+            R.setAttribute('position', `${state.eyeGap} 0 0`);
+            L.setAttribute('width', '4.4'); R.setAttribute('width', '4.4');
+            L.setAttribute('height', '2.47'); R.setAttribute('height', '2.47');
+        }
+    }
+
+    [document.getElementById('normal-click-surface'), document.getElementById('vr-click-surface')].forEach(el => {
+        el.addEventListener('mousedown', handleStart);
+        el.addEventListener('mouseup', handleEnd);
+        el.addEventListener('touchstart', handleStart, {passive: false});
+        el.addEventListener('touchend', handleEnd, {passive: false});
+    });
+
+    window.handleFile = (input) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const lines = e.target.result.split('\n');
+            lines.forEach((line, i) => {
+                if (line.startsWith('#EXTINF:')) {
+                    const url = lines[i+1]?.trim();
+                    if(url && !url.startsWith('#')) state.channels.push({title: line.split(',')[1] || "Canal", url});
+                }
+            });
+            window.saveState(); render();
+        };
+        reader.readAsText(input.files[0]);
+    };
+
+    window.addUrl = () => {
+      const u = document.getElementById('urlIn'), n = document.getElementById('nameIn');
+      if(u.value.trim()){
+        state.channels.push({title: n.value.trim() || "Canal", url: u.value.trim()});
+        u.value = ""; n.value = ""; window.saveState(); render();
+      }
+    };
+
+    window.toggleVR = () => {
+      const isVR = document.body.classList.toggle('is-vr');
+      const scene = document.querySelector('a-scene');
+      if (isVR) {
+          document.documentElement.requestFullscreen?.().catch(()=>{});
+          if(scene) scene.play(); updateScreens();
+      } else {
+          if(document.fullscreenElement) document.exitFullscreen();
+          if(scene) scene.pause();
+      }
+    };
+
+    window.toggleFS = () => {
+      const area = document.getElementById('normalPlayerArea');
+      if (!document.fullscreenElement) area.requestFullscreen();
+      else document.exitFullscreen();
+    };
+
+    window.clearAll = () => { if(confirm("¿Borrar todos los canales?")) { state.channels = []; state.current = -1; window.saveState(); render(); } };
+
+    function showFeedback(txt) { 
+        feedback.textContent = txt; feedback.style.display = "block"; 
+        setTimeout(() => feedback.style.display = "none", 1000); 
+    }
+
+    function render() {
+      const listDiv = document.getElementById('list');
+      listDiv.innerHTML = state.channels.map((ch, i) => `
+        <div class="channel-item ${state.current === i ? 'active' : ''}" onclick="window.playUrl('${ch.url}', ${i})">
+            <div><b>${ch.title}</b></div>
+            <button style="background:#444; color:#fff; padding:5px 10px; border-radius:5px" onclick="event.stopPropagation(); state.channels.splice(${i}, 1); window.saveState(); render();">X</button>
+         </div>`).join('') || '<div style="padding:15px; color:#666; text-align:center">Sin canales</div>';
+    }
+
+    render();
+    document.querySelector('a-scene').addEventListener('loaded', function () { this.pause(); });
+  </script>
 </body>
-
 </html>
